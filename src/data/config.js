@@ -24,7 +24,7 @@ export const ENEMY = {
     // 기본 적 (박쥐)
     BAT: {
         HP: 10,
-        SPEED: 80,
+        SPEED: 85,
         DAMAGE: 5,
         RADIUS: 12,
         COLOR: '#ef5350',       // 빨간색
@@ -50,7 +50,7 @@ export const ENEMY = {
     },
     // 보스
     BOSS: {
-        HP: 500,
+        HP: 1500,
         SPEED: 40,
         DAMAGE: 30,
         RADIUS: 40,
@@ -66,17 +66,26 @@ export const SPAWNER = {
     MIN_INTERVAL: 0.3,          // 최소 스폰 간격 (초)
     MAX_ENEMIES: 200,           // 최대 동시 적 수
     DESPAWN_DISTANCE: 800,      // 이 거리 이상 멀어지면 디스폰 (px)
-    // 시간대별 스폰 설정 (초 단위)
+    // 시간대별 스폰 설정 (초 단위) — 10분(600초) 전체 커버
     WAVES: [
-        { time: 0,   types: ['BAT'],               spawnCount: 1, interval: 1.5 },
-        { time: 30,  types: ['BAT'],               spawnCount: 2, interval: 1.2 },
-        { time: 60,  types: ['BAT', 'ZOMBIE'],     spawnCount: 2, interval: 1.0 },
-        { time: 120, types: ['BAT', 'ZOMBIE'],     spawnCount: 3, interval: 0.8 },
+        { time: 0,   types: ['BAT'],                spawnCount: 1, interval: 1.5 },
+        { time: 30,  types: ['BAT'],                spawnCount: 2, interval: 1.2 },
+        { time: 60,  types: ['BAT', 'ZOMBIE'],      spawnCount: 2, interval: 1.0 },
+        { time: 120, types: ['BAT', 'ZOMBIE'],      spawnCount: 3, interval: 0.8 },
         { time: 180, types: ['ZOMBIE', 'SKELETON'], spawnCount: 3, interval: 0.6 },
         { time: 240, types: ['ZOMBIE', 'SKELETON'], spawnCount: 4, interval: 0.5 },
         { time: 300, types: ['SKELETON'],           spawnCount: 5, interval: 0.4 },
+        // 후반 웨이브 (보스 이후, 더 어려워짐)
+        { time: 360, types: ['SKELETON', 'ZOMBIE'], spawnCount: 6, interval: 0.35 },
+        { time: 420, types: ['SKELETON'],           spawnCount: 7, interval: 0.3 },
+        { time: 480, types: ['SKELETON'],           spawnCount: 8, interval: 0.25 },
+        { time: 540, types: ['SKELETON'],           spawnCount: 10, interval: 0.2 },
     ],
     BOSS_SPAWN_TIME: 300,       // 보스 등장 시간 (5분 = 300초)
+    // 시간 경과에 따른 적 스탯 스케일링 (5분 이후 적용)
+    SCALING_START_TIME: 300,    // 스케일링 시작 시간 (초)
+    SCALING_HP_PER_MIN: 0.15,   // 분당 HP 증가율 (15%)
+    SCALING_DMG_PER_MIN: 0.10,  // 분당 데미지 증가율 (10%)
 };
 
 // ===== 무기 설정 =====
@@ -87,11 +96,11 @@ export const WEAPONS = {
         DESCRIPTION: '가장 가까운 적에게 투사체를 발사한다',
         COLOR: '#ffab40',       // 주황색 투사체
         LEVELS: [
-            { damage: 10, cooldown: 1.0,  speed: 350, count: 1, size: 6  },
-            { damage: 15, cooldown: 0.9,  speed: 370, count: 1, size: 7  },
-            { damage: 15, cooldown: 0.85, speed: 390, count: 2, size: 7  },
-            { damage: 20, cooldown: 0.75, speed: 410, count: 2, size: 8  },
-            { damage: 25, cooldown: 0.65, speed: 430, count: 3, size: 9  },
+            { damage: 10, cooldown: 1.0, speed: 350, count: 1, size: 6 },
+            { damage: 15, cooldown: 0.9, speed: 370, count: 1, size: 7 },
+            { damage: 15, cooldown: 0.85, speed: 390, count: 2, size: 7 },
+            { damage: 20, cooldown: 0.75, speed: 410, count: 2, size: 8 },
+            { damage: 25, cooldown: 0.65, speed: 430, count: 3, size: 9 },
         ],
         MAX_LEVEL: 5,
     },
@@ -101,11 +110,11 @@ export const WEAPONS = {
         DESCRIPTION: '주변의 적에게 지속적으로 피해를 준다',
         COLOR: 'rgba(200, 230, 201, 0.3)',  // 연두색 반투명
         LEVELS: [
-            { damage: 5,  cooldown: 1.0, radius: 80,  knockback: 20 },
-            { damage: 7,  cooldown: 0.9, radius: 90,  knockback: 30 },
-            { damage: 9,  cooldown: 0.8, radius: 100, knockback: 40 },
-            { damage: 12, cooldown: 0.7, radius: 115, knockback: 50 },
-            { damage: 15, cooldown: 0.6, radius: 130, knockback: 60 },
+            { damage: 5, cooldown: 1.0, radius: 80, knockback: 10 },
+            { damage: 7, cooldown: 0.9, radius: 90, knockback: 15 },
+            { damage: 9, cooldown: 0.8, radius: 100, knockback: 20 },
+            { damage: 12, cooldown: 0.7, radius: 115, knockback: 25 },
+            { damage: 15, cooldown: 0.6, radius: 130, knockback: 30 },
         ],
         MAX_LEVEL: 5,
     },
@@ -150,6 +159,8 @@ export const EXP = {
     GEM_RADIUS: 8,              // 보석 크기
     GEM_COLOR: '#69f0ae',       // 보석 색상 (초록)
     GEM_MAGNET_SPEED: 400,      // 자석에 끌릴 때 이동 속도
+    GEM_LIFETIME: 30,           // 보석 수명 (초) — 이 시간 후 자동 소멸
+    GEM_BLINK_TIME: 5,          // 소멸 전 깜빡임 시작 시간 (초)
     LEVELUP_CHOICES: 3,         // 레벨업 시 선택지 개수
 };
 

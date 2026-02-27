@@ -22,6 +22,9 @@ export class Gem {
         this.active = false;
         this.isMagneted = false; // 플레이어에게 끌리고 있는 중인가
 
+        // ===== 수명 =====
+        this.lifetime = EXP.GEM_LIFETIME;   // 남은 수명 (초)
+
         // ===== 애니메이션 =====
         this._bobTimer = 0;     // 위아래 흔들림 타이머
         this._bobOffset = 0;    // 위아래 흔들림 오프셋
@@ -39,6 +42,7 @@ export class Gem {
         this.value = value;
         this.active = true;
         this.isMagneted = false;
+        this.lifetime = EXP.GEM_LIFETIME;
         this._bobTimer = Math.random() * Math.PI * 2; // 랜덤 시작 위상
     }
 
@@ -51,6 +55,15 @@ export class Gem {
      */
     update(dt, playerX, playerY, pickupRange) {
         if (!this.active) return;
+
+        // 수명 감소 (자석에 끌리고 있으면 소멸하지 않음)
+        if (!this.isMagneted) {
+            this.lifetime -= dt;
+            if (this.lifetime <= 0) {
+                this.active = false;
+                return;
+            }
+        }
 
         // 위아래 흔들림 애니메이션
         this._bobTimer += dt * 3;
@@ -85,6 +98,15 @@ export class Gem {
         const displayY = screen.y + this._bobOffset;
 
         ctx.save();
+
+        // 소멸 전 깜빡임 (남은 수명이 BLINK_TIME 이하일 때)
+        if (this.lifetime <= EXP.GEM_BLINK_TIME) {
+            // 빠르게 깜빡 (0.15초 간격)
+            if (Math.floor(this.lifetime * 6.67) % 2 === 0) {
+                ctx.restore();
+                return;
+            }
+        }
 
         // 보석을 다이아몬드(마름모) 모양으로 그린다
         ctx.fillStyle = EXP.GEM_COLOR;

@@ -40,7 +40,7 @@ export class EnemySpawner {
             this.spawnTimer = wave.interval;
 
             for (let i = 0; i < wave.spawnCount; i++) {
-                this._spawnEnemy(player, enemyPool, wave.types);
+                this._spawnEnemy(player, enemyPool, wave.types, gameTime);
             }
         }
 
@@ -72,13 +72,17 @@ export class EnemySpawner {
      * @param {Object} player - 플레이어
      * @param {ObjectPool} enemyPool - 적 풀
      * @param {Array<string>} types - 스폰 가능한 적 타입 목록
+     * @param {number} gameTime - 현재 게임 시간 (스케일링용)
      */
-    _spawnEnemy(player, enemyPool, types) {
+    _spawnEnemy(player, enemyPool, types, gameTime) {
         // 랜덤 적 타입 선택
         const typeName = randomPick(types);
-        const stats = ENEMY[typeName];
+        const baseStats = ENEMY[typeName];
 
-        if (!stats) return;
+        if (!baseStats) return;
+
+        // 시간 경과에 따른 스탯 스케일링 (SCALING_START_TIME 이후)
+        const stats = this._getScaledStats(baseStats, gameTime);
 
         // 스폰 위치: 플레이어 주변 원형 범위 밖 (화면 밖)
         const angle = randomAngle();
@@ -88,6 +92,29 @@ export class EnemySpawner {
         // 풀에서 적 꺼내서 초기화
         const enemy = enemyPool.get();
         enemy.init(x, y, stats, typeName);
+    }
+
+    /**
+     * 시간에 따라 스케일링된 적 스탯을 반환한다
+     * @param {Object} baseStats - 기본 스탯 (config에서)
+     * @param {number} gameTime - 현재 게임 시간
+     * @returns {Object} 스케일링된 스탯
+     */
+    _getScaledStats(baseStats, gameTime) {
+        if (gameTime < SPAWNER.SCALING_START_TIME) {
+            return baseStats;
+        }
+
+        // 스케일링 시작 이후 경과 분
+        const elapsedMin = (gameTime - SPAWNER.SCALING_START_TIME) / 60;
+        const hpMultiplier = 1 + SPAWNER.SCALING_HP_PER_MIN * elapsedMin;
+        const dmgMultiplier = 1 + SPAWNER.SCALING_DMG_PER_MIN * elapsedMin;
+
+        return {
+            ...baseStats,
+            HP: Math.floor(baseStats.HP * hpMultiplier),
+            DAMAGE: Math.floor(baseStats.DAMAGE * dmgMultiplier),
+        };
     }
 
     /**

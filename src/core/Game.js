@@ -2,9 +2,9 @@
  * 게임 매니저 (Game) - 싱글톤
  * - 게임 전체를 관리하는 "사령탑"
  * - 모든 시스템을 소유하고 매 프레임 업데이트/렌더를 지휘한다
- * - 게임 상태(MENU, PLAY, LEVELUP, PAUSE, GAMEOVER) 관리
+ * - 게임 상태(MENU, PLAY, LEVELUP, PAUSE, GAMEOVER, VICTORY) 관리
  */
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GAME, POOL_SIZES, EXP } from '../data/config.js';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GAME, POOL_SIZES } from '../data/config.js';
 import { Input } from './Input.js';
 import { Camera } from './Camera.js';
 import { Player } from '../entities/Player.js';
@@ -21,11 +21,12 @@ import { HUD } from '../ui/HUD.js';
 import { LevelUpUI } from '../ui/LevelUpUI.js';
 import { MenuUI } from '../ui/MenuUI.js';
 import { GameOverUI } from '../ui/GameOverUI.js';
+import { VictoryUI } from '../ui/VictoryUI.js';
 import { DebugMode } from './DebugMode.js';
 
 /**
  * 게임 상태 열거값
- * - 게임은 항상 이 5가지 상태 중 하나
+ * - 게임은 항상 이 6가지 상태 중 하나
  */
 const STATE = {
     MENU: 'MENU',
@@ -33,6 +34,7 @@ const STATE = {
     LEVELUP: 'LEVELUP',
     PAUSE: 'PAUSE',
     GAMEOVER: 'GAMEOVER',
+    VICTORY: 'VICTORY',
 };
 
 export class Game {
@@ -74,6 +76,7 @@ export class Game {
         this.levelUpUI = new LevelUpUI();
         this.menuUI = new MenuUI();
         this.gameOverUI = new GameOverUI();
+        this.victoryUI = new VictoryUI();
 
         // ===== 레벨업 선택지 =====
         this._currentChoices = [];
@@ -139,6 +142,9 @@ export class Game {
             case STATE.GAMEOVER:
                 this._updateGameOver(dt);
                 break;
+            case STATE.VICTORY:
+                this._updateVictory(dt);
+                break;
         }
     }
 
@@ -179,6 +185,16 @@ export class Game {
                     totalExp: this.player.totalExp,
                 });
                 break;
+
+            case STATE.VICTORY:
+                this._renderGame();
+                this.victoryUI.render(this.ctx, this.canvas.width, this.canvas.height, {
+                    gameTime: this.gameTime,
+                    level: this.player.level,
+                    killCount: this.player.killCount,
+                    totalExp: this.player.totalExp,
+                });
+                break;
         }
     }
 
@@ -201,6 +217,12 @@ export class Game {
 
         // 게임 시간 증가
         this.gameTime += dt;
+
+        // 게임 클리어 체크 (제한 시간 초과)
+        if (this.gameTime >= GAME.GAME_DURATION) {
+            this.state = STATE.VICTORY;
+            return;
+        }
 
         // 카메라 업데이트
         this.camera.update(dt);
@@ -243,7 +265,8 @@ export class Game {
         // 충돌 판정 (내부에서 비활성 투사체/보석 정리도 수행)
         this.collisionSystem.update(this);
 
-        // 비활성 데미지텍스트/적 정리
+        // 비활성 오브젝트 정리 (수명 만료 보석 포함)
+        this.gems.releaseWhere(g => !g.active);
         this.damageTexts.releaseWhere(t => !t.active);
         this.enemies.releaseWhere(e => !e.active);
     }
@@ -275,6 +298,14 @@ export class Game {
 
     _updateGameOver(dt) {
         this.gameOverUI.update(dt);
+
+        if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
+            this.state = STATE.MENU;
+        }
+    }
+
+    _updateVictory(dt) {
+        this.victoryUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
             this.state = STATE.MENU;
