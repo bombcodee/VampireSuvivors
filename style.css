@@ -1,0 +1,23 @@
+/* ===== 전체 페이지 스타일 ===== */
+/* 브라우저 기본 여백 제거, 스크롤바 숨기기 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;           /* 스크롤바 숨기기 */
+    background-color: #1a1a2e;  /* 어두운 배경색 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;              /* 화면 전체 높이 */
+}
+
+/* ===== 게임 캔버스 ===== */
+#gameCanvas {
+    display: block;
+    background-color: #16213e;  /* 캔버스 배경색 (게임 월드 색) */
+    image-rendering: pixelated; /* 픽셀아트 스타일로 렌더링 */
+}
