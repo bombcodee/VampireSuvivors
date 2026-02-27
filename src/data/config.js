@@ -118,6 +118,62 @@ export const WEAPONS = {
         ],
         MAX_LEVEL: 5,
     },
+    // 성수: 바닥에 설치되는 장판 데미지
+    HOLY_WATER: {
+        NAME: 'Holy Water',
+        DESCRIPTION: '바닥에 성수 웅덩이를 만들어 적에게 지속 피해를 준다',
+        COLOR: 'rgba(100, 181, 246, 0.4)',  // 파란색 반투명
+        LEVELS: [
+            { damage: 8,  cooldown: 3.0, radius: 50,  duration: 2.5, tickRate: 0.5 },
+            { damage: 10, cooldown: 2.8, radius: 55,  duration: 3.0, tickRate: 0.45 },
+            { damage: 12, cooldown: 2.5, radius: 60,  duration: 3.5, tickRate: 0.4 },
+            { damage: 15, cooldown: 2.2, radius: 70,  duration: 4.0, tickRate: 0.35 },
+            { damage: 20, cooldown: 2.0, radius: 80,  duration: 4.5, tickRate: 0.3 },
+        ],
+        MAX_LEVEL: 5,
+    },
+    // 킹 바이블: 플레이어 주변을 회전하는 투사체
+    KING_BIBLE: {
+        NAME: 'King Bible',
+        DESCRIPTION: '플레이어 주변을 회전하며 적을 공격한다',
+        COLOR: '#ce93d8',          // 보라색
+        LEVELS: [
+            { damage: 8,  cooldown: 3.5, orbitRadius: 80,  count: 1, duration: 3.0, speed: 2.5 },
+            { damage: 10, cooldown: 3.2, orbitRadius: 85,  count: 2, duration: 3.0, speed: 2.7 },
+            { damage: 12, cooldown: 3.0, orbitRadius: 90,  count: 2, duration: 3.5, speed: 2.9 },
+            { damage: 15, cooldown: 2.8, orbitRadius: 95,  count: 3, duration: 3.5, speed: 3.1 },
+            { damage: 20, cooldown: 2.5, orbitRadius: 100, count: 3, duration: 4.0, speed: 3.3 },
+        ],
+        MAX_LEVEL: 5,
+    },
+    // 파이어 완드: 관통하는 불꽃 투사체
+    FIRE_WAND: {
+        NAME: 'Fire Wand',
+        DESCRIPTION: '적을 관통하는 불꽃을 발사한다',
+        COLOR: '#ff7043',          // 주황빨강
+        LEVELS: [
+            { damage: 20, cooldown: 1.5, speed: 300, count: 1, size: 8,  pierce: 2 },
+            { damage: 25, cooldown: 1.4, speed: 320, count: 1, size: 9,  pierce: 2 },
+            { damage: 30, cooldown: 1.3, speed: 340, count: 1, size: 10, pierce: 3 },
+            { damage: 35, cooldown: 1.1, speed: 360, count: 2, size: 10, pierce: 3 },
+            { damage: 45, cooldown: 1.0, speed: 380, count: 2, size: 12, pierce: 4 },
+        ],
+        MAX_LEVEL: 5,
+    },
+    // 나이프: 빠르고 많이 발사하는 투사체
+    KNIFE: {
+        NAME: 'Knife',
+        DESCRIPTION: '빠른 나이프를 여러 개 연속 발사한다',
+        COLOR: '#b0bec5',          // 은색
+        LEVELS: [
+            { damage: 6,  cooldown: 0.5, speed: 500, count: 1, size: 4 },
+            { damage: 7,  cooldown: 0.45, speed: 520, count: 1, size: 4 },
+            { damage: 8,  cooldown: 0.4, speed: 540, count: 2, size: 5 },
+            { damage: 10, cooldown: 0.35, speed: 560, count: 2, size: 5 },
+            { damage: 12, cooldown: 0.3, speed: 580, count: 3, size: 5 },
+        ],
+        MAX_LEVEL: 5,
+    },
 };
 
 // ===== 패시브 아이템 설정 =====

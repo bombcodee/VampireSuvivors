@@ -8,6 +8,10 @@ import { EXP, WEAPONS, PASSIVES } from '../data/config.js';
 import { shuffle } from '../utils/MathUtils.js';
 import { MagicWand } from '../weapons/MagicWand.js';
 import { Garlic } from '../weapons/Garlic.js';
+import { HolyWater } from '../weapons/HolyWater.js';
+import { KingBible } from '../weapons/KingBible.js';
+import { FireWand } from '../weapons/FireWand.js';
+import { Knife } from '../weapons/Knife.js';
 
 export class ExpSystem {
     constructor() {
@@ -15,6 +19,10 @@ export class ExpSystem {
         this._weaponClasses = {
             'MAGIC_WAND': MagicWand,
             'GARLIC': Garlic,
+            'HOLY_WATER': HolyWater,
+            'KING_BIBLE': KingBible,
+            'FIRE_WAND': FireWand,
+            'KNIFE': Knife,
         };
     }
 
