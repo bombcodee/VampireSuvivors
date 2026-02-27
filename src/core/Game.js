@@ -2,9 +2,9 @@
  * 게임 매니저 (Game) - 싱글톤
  * - 게임 전체를 관리하는 "사령탑"
  * - 모든 시스템을 소유하고 매 프레임 업데이트/렌더를 지휘한다
- * - 게임 상태(MENU, PLAY, LEVELUP, PAUSE, GAMEOVER, VICTORY) 관리
+ * - 게임 상태(MENU, CHARSELECT, PLAY, LEVELUP, PAUSE, GAMEOVER, VICTORY) 관리
  */
-import { CANVAS_WIDTH, CANVAS_HEIGHT, GAME, POOL_SIZES } from '../data/config.js';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, GAME, POOL_SIZES, CHARACTERS } from '../data/config.js';
 import { Input } from './Input.js';
 import { Camera } from './Camera.js';
 import { Player } from '../entities/Player.js';
@@ -12,7 +12,6 @@ import { Enemy } from '../entities/Enemy.js';
 import { Gem } from '../entities/Gem.js';
 import { Projectile } from '../entities/Projectile.js';
 import { DamageText } from '../entities/DamageText.js';
-import { MagicWand } from '../weapons/MagicWand.js';
 import { ObjectPool } from '../utils/ObjectPool.js';
 import { EnemySpawner } from '../systems/EnemySpawner.js';
 import { ExpSystem } from '../systems/ExpSystem.js';
@@ -22,14 +21,16 @@ import { LevelUpUI } from '../ui/LevelUpUI.js';
 import { MenuUI } from '../ui/MenuUI.js';
 import { GameOverUI } from '../ui/GameOverUI.js';
 import { VictoryUI } from '../ui/VictoryUI.js';
+import { CharSelectUI } from '../ui/CharSelectUI.js';
 import { DebugMode } from './DebugMode.js';
 
 /**
  * 게임 상태 열거값
- * - 게임은 항상 이 6가지 상태 중 하나
+ * - 게임은 항상 이 7가지 상태 중 하나
  */
 const STATE = {
     MENU: 'MENU',
+    CHARSELECT: 'CHARSELECT',
     PLAY: 'PLAY',
     LEVELUP: 'LEVELUP',
     PAUSE: 'PAUSE',
@@ -75,6 +76,7 @@ export class Game {
         this.hud = new HUD();
         this.levelUpUI = new LevelUpUI();
         this.menuUI = new MenuUI();
+        this.charSelectUI = new CharSelectUI();
         this.gameOverUI = new GameOverUI();
         this.victoryUI = new VictoryUI();
 
@@ -130,6 +132,9 @@ export class Game {
             case STATE.MENU:
                 this._updateMenu(dt);
                 break;
+            case STATE.CHARSELECT:
+                this._updateCharSelect();
+                break;
             case STATE.PLAY:
                 this._updatePlay(dt);
                 break;
@@ -158,6 +163,10 @@ export class Game {
         switch (this.state) {
             case STATE.MENU:
                 this.menuUI.render(this.ctx, this.canvas.width, this.canvas.height);
+                break;
+
+            case STATE.CHARSELECT:
+                this.charSelectUI.render(this.ctx, this.canvas.width, this.canvas.height);
                 break;
 
             case STATE.PLAY:
@@ -204,7 +213,15 @@ export class Game {
         this.menuUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
-            this._startGame();
+            this.charSelectUI.selectedIndex = 0; // 선택 초기화
+            this.state = STATE.CHARSELECT;
+        }
+    }
+
+    _updateCharSelect() {
+        const characterId = this.charSelectUI.update(this.input);
+        if (characterId) {
+            this._startGame(characterId);
         }
     }
 
@@ -406,13 +423,18 @@ export class Game {
     /**
      * 새 게임을 시작한다
      */
-    _startGame() {
+    _startGame(characterId) {
         // 플레이어 초기화
         this.player.reset(0, 0);
 
-        // 초기 무기: 매직 완드 지급
-        const wand = new MagicWand();
-        this.player.addWeapon(wand);
+        // 캐릭터 보너스 적용
+        this.player.applyCharacter(characterId);
+
+        // 캐릭터의 시작 무기 지급
+        const startWeaponId = CHARACTERS[characterId].START_WEAPON;
+        const WeaponClass = this.expSystem._weaponClasses[startWeaponId];
+        const startWeapon = new WeaponClass();
+        this.player.addWeapon(startWeapon);
 
         // 초기 경험치 설정
         this.player.expToNext = this.expSystem.getExpToNext(1);

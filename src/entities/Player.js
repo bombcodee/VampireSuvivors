@@ -5,7 +5,7 @@
  * - 무기를 장착하고 자동으로 공격
  * - 경험치를 모아 레벨업
  */
-import { PLAYER } from '../data/config.js';
+import { PLAYER, CHARACTERS } from '../data/config.js';
 
 export class Player {
     /**
@@ -24,10 +24,16 @@ export class Player {
         this.baseSpeed = PLAYER.SPEED;
         this.pickupRange = PLAYER.PICKUP_RANGE;
 
-        // ===== 스탯 배율 (패시브로 증가) =====
-        this.speedMultiplier = 1.0;     // 이동 속도 배율
-        this.pickupMultiplier = 1.0;    // 보석 흡수 범위 배율
-        this.armor = 0;                 // 방어력 (받는 데미지 감소)
+        // ===== 스탯 배율 (패시브/캐릭터 보너스) =====
+        this.speedMultiplier = 1.0;         // 이동 속도 배율
+        this.pickupMultiplier = 1.0;        // 보석 흡수 범위 배율
+        this.armor = 0;                     // 방어력 (받는 데미지 감소)
+        this.damageMultiplier = 1.0;        // 공격력 배율 (캐릭터 보너스)
+        this.expMultiplier = 1.0;           // 경험치 배율 (캐릭터 보너스)
+        this.projSpeedMultiplier = 1.0;     // 투사체 속도 배율 (캐릭터 보너스)
+
+        // ===== 캐릭터 =====
+        this.characterId = 'ANTONIO';       // 선택된 캐릭터 ID
 
         // ===== 무기 =====
         this.weapons = [];  // 장착된 무기 배열
@@ -127,7 +133,7 @@ export class Player {
         if (this.flashTimer > 0) {
             ctx.fillStyle = '#ffffff';
         } else {
-            ctx.fillStyle = PLAYER.COLOR;
+            ctx.fillStyle = this.color || PLAYER.COLOR;
         }
 
         // 몸체 (원)
@@ -180,8 +186,9 @@ export class Player {
      * @returns {boolean} 레벨업했으면 true
      */
     addExp(amount) {
-        this.exp += amount;
-        this.totalExp += amount;
+        const scaledAmount = Math.floor(amount * this.expMultiplier);
+        this.exp += scaledAmount;
+        this.totalExp += scaledAmount;
 
         if (this.exp >= this.expToNext) {
             this.exp -= this.expToNext;
@@ -221,6 +228,9 @@ export class Player {
         this.speedMultiplier = 1.0;
         this.pickupMultiplier = 1.0;
         this.armor = 0;
+        this.damageMultiplier = 1.0;
+        this.expMultiplier = 1.0;
+        this.projSpeedMultiplier = 1.0;
         this.weapons = [];
         this.level = 1;
         this.exp = 0;
@@ -230,6 +240,21 @@ export class Player {
         this.killCount = 0;
         this.totalExp = 0;
         this.active = true;
+    }
+
+    /**
+     * 캐릭터 보너스를 적용한다
+     * @param {string} characterId - 캐릭터 ID (예: 'ANTONIO')
+     */
+    applyCharacter(characterId) {
+        const charConfig = CHARACTERS[characterId];
+        if (!charConfig) return;
+
+        this.characterId = characterId;
+        this.color = charConfig.COLOR;
+
+        const bonus = charConfig.BONUS;
+        this[bonus.stat] += bonus.value;
     }
 
     /**

@@ -19,6 +19,31 @@ export const PLAYER = {
     PICKUP_RANGE: 60,       // 보석 자동 흡수 범위 (px)
 };
 
+// ===== 캐릭터 설정 =====
+export const CHARACTERS = {
+    ANTONIO: {
+        NAME: 'Antonio',
+        DESCRIPTION: '공격력 +10%',
+        COLOR: '#4fc3f7',       // 하늘색
+        BONUS: { stat: 'damageMultiplier', value: 0.1 },
+        START_WEAPON: 'MAGIC_WAND',
+    },
+    IMELDA: {
+        NAME: 'Imelda',
+        DESCRIPTION: '경험치 +10%',
+        COLOR: '#ce93d8',       // 보라색
+        BONUS: { stat: 'expMultiplier', value: 0.1 },
+        START_WEAPON: 'MAGIC_WAND',
+    },
+    PASQUALINA: {
+        NAME: 'Pasqualina',
+        DESCRIPTION: '투사체 속도 +10%',
+        COLOR: '#ffab91',       // 연한 주황
+        BONUS: { stat: 'projSpeedMultiplier', value: 0.1 },
+        START_WEAPON: 'KNIFE',
+    },
+};
+
 // ===== 적(Enemy) 설정 =====
 export const ENEMY = {
     // 기본 적 (박쥐)
