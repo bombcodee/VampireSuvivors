@@ -109,11 +109,13 @@ export class EnemySpawner {
         const elapsedMin = (gameTime - SPAWNER.SCALING_START_TIME) / 60;
         const hpMultiplier = 1 + SPAWNER.SCALING_HP_PER_MIN * elapsedMin;
         const dmgMultiplier = 1 + SPAWNER.SCALING_DMG_PER_MIN * elapsedMin;
+        const spdMultiplier = 1 + SPAWNER.SCALING_SPD_PER_MIN * elapsedMin;
 
         return {
             ...baseStats,
             HP: Math.floor(baseStats.HP * hpMultiplier),
             DAMAGE: Math.floor(baseStats.DAMAGE * dmgMultiplier),
+            SPEED: Math.floor(baseStats.SPEED * spdMultiplier),
         };
     }
 

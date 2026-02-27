@@ -86,6 +86,7 @@ export const SPAWNER = {
     SCALING_START_TIME: 300,    // 스케일링 시작 시간 (초)
     SCALING_HP_PER_MIN: 0.15,   // 분당 HP 증가율 (15%)
     SCALING_DMG_PER_MIN: 0.10,  // 분당 데미지 증가율 (10%)
+    SCALING_SPD_PER_MIN: 0.12,  // 분당 이동속도 증가율 (12%)
 };
 
 // ===== 무기 설정 =====
