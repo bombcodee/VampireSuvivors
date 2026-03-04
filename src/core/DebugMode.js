@@ -19,6 +19,8 @@ export class DebugMode {
         // ===== 디버그 기능 상태 =====
         this.godMode = false;       // 무적 모드
         this.timeScale = 1;         // 배속 (1, 2, 4)
+        this.magnetMode = false;    // 파워자석 모드 (전체 보석 흡수)
+        this.autoLevelUp = false;   // 자동 레벨업 (랜덤 선택)
 
         // ===== FPS 측정 =====
         this._frameCount = 0;
@@ -71,6 +73,26 @@ export class DebugMode {
         if (input.isKeyPressed('KeyK')) {
             this._killAllEnemies(game);
         }
+
+        // M: 파워자석 모드 토글
+        if (input.isKeyPressed('KeyM')) {
+            this.magnetMode = !this.magnetMode;
+        }
+
+        // A: 자동 레벨업 토글
+        if (input.isKeyPressed('KeyA')) {
+            this.autoLevelUp = !this.autoLevelUp;
+        }
+
+        // 파워자석 활성 시: 모든 보석을 플레이어에게 끌어당김
+        if (this.magnetMode) {
+            this._pullAllGems(game);
+        }
+
+        // 자동 레벨업 활성 시: LEVELUP 상태면 랜덤 선택
+        if (this.autoLevelUp && game.state === 'LEVELUP') {
+            this._autoSelectLevelUp(game);
+        }
     }
 
     /**
@@ -112,7 +134,7 @@ export class DebugMode {
         if (game.enemySpawner.bossSpawned || game.gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
             shownTypes.add('BOSS');
         }
-        const panelLines = 12 + shownTypes.size;
+        const panelLines = 13 + shownTypes.size;
 
         ctx.save();
         ctx.globalAlpha = 0.6;
@@ -148,6 +170,14 @@ export class DebugMode {
         ctx.fillText(godText, x + 30, y);
         ctx.fillStyle = this.timeScale > 1 ? '#ffd54f' : '#ffffff';
         ctx.fillText(`Speed: ${this.timeScale}x`, x + 80, y);
+        ctx.fillStyle = this.magnetMode ? '#69f0ae' : '#ef9a9a';
+        ctx.fillText(`Mag: ${this.magnetMode ? 'ON' : 'OFF'}`, x + 160, y);
+        y += lineHeight;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`AutoLv: `, x, y);
+        ctx.fillStyle = this.autoLevelUp ? '#69f0ae' : '#ef9a9a';
+        ctx.fillText(this.autoLevelUp ? 'ON' : 'OFF', x + 50, y);
         y += lineHeight + 3;
 
         // 오브젝트 수
@@ -208,6 +238,8 @@ export class DebugMode {
             'T  : Speed (1x/2x/4x)',
             'L  : Level Up',
             'K  : Kill All',
+            `M  : Magnet ${this.magnetMode ? 'ON' : 'OFF'}`,
+            `A  : Auto LvUp ${this.autoLevelUp ? 'ON' : 'OFF'}`,
         ];
 
         const x = canvasW - 155;
@@ -230,6 +262,28 @@ export class DebugMode {
         }
 
         ctx.restore();
+    }
+
+    /**
+     * 모든 보석을 플레이어에게 강제 흡수시킨다
+     */
+    _pullAllGems(game) {
+        for (const gem of game.gems.getActive()) {
+            gem.isMagneted = true;
+        }
+    }
+
+    /**
+     * 레벨업 선택지 중 랜덤으로 하나를 자동 선택한다
+     */
+    _autoSelectLevelUp(game) {
+        const choices = game._currentChoices;
+        if (choices.length === 0) return;
+
+        const randomIndex = Math.floor(Math.random() * choices.length);
+        game.expSystem.applyChoice(game.player, choices[randomIndex]);
+        game.player.expToNext = game.expSystem.getExpToNext(game.player.level);
+        game.state = 'PLAY';
     }
 
     /**
