@@ -33,17 +33,20 @@ export class Knife {
         return true;
     }
 
-    update(dt, playerX, playerY, enemies, projectilePool) {
+    update(dt, playerX, playerY, enemies, projectilePool, game) {
         this.cooldownTimer -= dt;
 
         if (this.cooldownTimer <= 0) {
             this.cooldownTimer = this.cooldown;
-            this._fire(playerX, playerY, enemies, projectilePool);
+            this._fire(playerX, playerY, enemies, projectilePool, game);
         }
     }
 
-    _fire(playerX, playerY, enemies, projectilePool) {
+    _fire(playerX, playerY, enemies, projectilePool, game) {
         if (enemies.length === 0) return;
+
+        const dmgMul = game ? game.player.damageMultiplier : 1;
+        const spdMul = game ? game.player.projSpeedMultiplier : 1;
 
         const sorted = enemies
             .filter(e => e.active)
@@ -77,8 +80,8 @@ export class Knife {
                 y: playerY,
                 dx: finalDx,
                 dy: finalDy,
-                damage: this.damage,
-                speed: this.speed,
+                damage: Math.floor(this.damage * dmgMul),
+                speed: this.speed * spdMul,
                 size: this.size,
                 color: WEAPONS.KNIFE.COLOR,
                 weaponId: this.id,

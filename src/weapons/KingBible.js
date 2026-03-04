@@ -75,6 +75,8 @@ export class KingBible {
 
     _checkCollisions(playerX, playerY, enemies, game) {
         const bookRadius = 10; // 각 성경책의 충돌 반경
+        const dmgMul = game ? game.player.damageMultiplier : 1;
+        const finalDamage = Math.floor(this.damage * dmgMul);
 
         for (let i = 0; i < this.count; i++) {
             const angleOffset = (Math.PI * 2 / this.count) * i;
@@ -93,11 +95,11 @@ export class KingBible {
                 if (dist < bookRadius + enemy.radius) {
                     this._hitCooldowns.set(hitKey, 0.3);
 
-                    const isDead = enemy.takeDamage(this.damage, bookX, bookY);
+                    const isDead = enemy.takeDamage(finalDamage, bookX, bookY);
 
                     if (game && game.damageTexts) {
                         const text = game.damageTexts.get();
-                        text.init(enemy.x, enemy.y - enemy.radius, this.damage, '#ce93d8');
+                        text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#ce93d8');
                     }
 
                     if (isDead && game) {

@@ -84,6 +84,9 @@ export class Garlic {
         this._showPulse = true;
         this._pulseTimer = 0.15;
 
+        const dmgMul = game ? game.player.damageMultiplier : 1;
+        const finalDamage = Math.floor(this.damage * dmgMul);
+
         // 범위 안의 모든 적에게 데미지 + 넉백
         for (const enemy of enemies) {
             if (!enemy.active) continue;
@@ -91,12 +94,12 @@ export class Garlic {
             const dist = distance(playerX, playerY, enemy.x, enemy.y);
             if (dist < this.radius + enemy.radius) {
                 // 데미지 (playerX, playerY를 넘겨서 넉백 방향 계산)
-                const isDead = enemy.takeDamage(this.damage, playerX, playerY);
+                const isDead = enemy.takeDamage(finalDamage, playerX, playerY);
 
                 // 데미지 텍스트 표시
                 if (game && game.damageTexts) {
                     const text = game.damageTexts.get();
-                    text.init(enemy.x, enemy.y - enemy.radius, this.damage, '#c8e6c9');
+                    text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#c8e6c9');
                 }
 
                 // 적 사망 처리 (보석 드롭 + 킬 카운트)

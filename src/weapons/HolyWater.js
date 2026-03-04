@@ -75,17 +75,20 @@ export class HolyWater {
     }
 
     _tickDamage(pool, enemies, game) {
+        const dmgMul = game ? game.player.damageMultiplier : 1;
+        const finalDamage = Math.floor(pool.damage * dmgMul);
+
         for (const enemy of enemies) {
             if (!enemy.active) continue;
 
             const dist = distance(pool.x, pool.y, enemy.x, enemy.y);
             if (dist < pool.radius + enemy.radius) {
-                const isDead = enemy.takeDamage(pool.damage, pool.x, pool.y);
+                const isDead = enemy.takeDamage(finalDamage, pool.x, pool.y);
 
                 // 데미지 텍스트
                 if (game && game.damageTexts) {
                     const text = game.damageTexts.get();
-                    text.init(enemy.x, enemy.y - enemy.radius, pool.damage, '#64b5f6');
+                    text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#64b5f6');
                 }
 
                 // 적 사망 처리

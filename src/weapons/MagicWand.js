@@ -51,14 +51,14 @@ export class MagicWand {
      * @param {Array} enemies - 활성 적 목록
      * @param {ObjectPool} projectilePool - 투사체 풀
      */
-    update(dt, playerX, playerY, enemies, projectilePool) {
+    update(dt, playerX, playerY, enemies, projectilePool, game) {
         // 쿨타임 감소
         this.cooldownTimer -= dt;
 
         // 쿨타임이 끝나면 발사
         if (this.cooldownTimer <= 0) {
             this.cooldownTimer = this.cooldown;
-            this._fire(playerX, playerY, enemies, projectilePool);
+            this._fire(playerX, playerY, enemies, projectilePool, game);
         }
     }
 
@@ -69,9 +69,13 @@ export class MagicWand {
      * @param {Array} enemies - 활성 적 목록
      * @param {ObjectPool} projectilePool - 투사체 풀
      */
-    _fire(playerX, playerY, enemies, projectilePool) {
+    _fire(playerX, playerY, enemies, projectilePool, game) {
         // 적이 없으면 발사하지 않음
         if (enemies.length === 0) return;
+
+        // 플레이어 배율 가져오기
+        const dmgMul = game ? game.player.damageMultiplier : 1;
+        const spdMul = game ? game.player.projSpeedMultiplier : 1;
 
         // 가까운 적들을 거리순으로 정렬 (가까운 순)
         const sorted = enemies
@@ -104,15 +108,15 @@ export class MagicWand {
                 finalDy = dir.x * sin + dir.y * cos;
             }
 
-            // 투사체 생성
+            // 투사체 생성 (배율 적용)
             const proj = projectilePool.get();
             proj.init({
                 x: playerX,
                 y: playerY,
                 dx: finalDx,
                 dy: finalDy,
-                damage: this.damage,
-                speed: this.speed,
+                damage: Math.floor(this.damage * dmgMul),
+                speed: this.speed * spdMul,
                 size: this.size,
                 color: WEAPONS.MAGIC_WAND.COLOR,
                 weaponId: this.id,
