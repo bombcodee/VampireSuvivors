@@ -12,6 +12,8 @@ import { HolyWater } from '../weapons/HolyWater.js';
 import { KingBible } from '../weapons/KingBible.js';
 import { FireWand } from '../weapons/FireWand.js';
 import { Knife } from '../weapons/Knife.js';
+import { LightningRing } from '../weapons/LightningRing.js';
+import { Whip } from '../weapons/Whip.js';
 
 export class ExpSystem {
     constructor() {
@@ -23,6 +25,8 @@ export class ExpSystem {
             'KING_BIBLE': KingBible,
             'FIRE_WAND': FireWand,
             'KNIFE': Knife,
+            'LIGHTNING_RING': LightningRing,
+            'WHIP': Whip,
         };
     }
 

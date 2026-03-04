@@ -200,6 +200,34 @@ export const WEAPONS = {
         ],
         MAX_LEVEL: 5,
     },
+    // 라이트닝 링: 무작위 적에게 번개
+    LIGHTNING_RING: {
+        NAME: 'Lightning Ring',
+        DESCRIPTION: '무작위 적에게 번개를 내린다',
+        COLOR: '#ffeb3b',          // 노란색
+        LEVELS: [
+            { damage: 15, cooldown: 2.0, count: 1, range: 300 },
+            { damage: 18, cooldown: 1.8, count: 1, range: 320 },
+            { damage: 22, cooldown: 1.6, count: 2, range: 340 },
+            { damage: 28, cooldown: 1.4, count: 2, range: 360 },
+            { damage: 35, cooldown: 1.2, count: 3, range: 400 },
+        ],
+        MAX_LEVEL: 5,
+    },
+    // 채찍: 전방 근접 공격
+    WHIP: {
+        NAME: 'Whip',
+        DESCRIPTION: '전방의 적을 채찍으로 공격한다',
+        COLOR: '#8d6e63',          // 갈색
+        LEVELS: [
+            { damage: 15, cooldown: 1.2, range: 100, knockback: 15 },
+            { damage: 20, cooldown: 1.1, range: 110, knockback: 18 },
+            { damage: 25, cooldown: 1.0, range: 120, knockback: 20 },
+            { damage: 35, cooldown: 0.9, range: 130, knockback: 22 },
+            { damage: 45, cooldown: 0.8, range: 145, knockback: 25 },
+        ],
+        MAX_LEVEL: 5,
+    },
 };
 
 // ===== 패시브 아이템 설정 =====
