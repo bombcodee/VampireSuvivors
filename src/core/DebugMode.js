@@ -10,6 +10,7 @@
  */
 import { SPAWNER, ENEMY } from '../data/config.js';
 import { UI } from '../data/config.js';
+import { ErrorGuard } from '../utils/ErrorGuard.js';
 
 export class DebugMode {
     constructor() {
@@ -134,7 +135,10 @@ export class DebugMode {
         if (game.enemySpawner.bossSpawned || game.gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
             shownTypes.add('BOSS');
         }
-        const panelLines = 13 + shownTypes.size;
+        // 에러 로그 줄 수 계산 (최대 3개 + 헤더 1줄)
+        const errors = ErrorGuard.getErrors();
+        const errorLines = errors.length > 0 ? Math.min(errors.length, 3) + 1 : 0;
+        const panelLines = 13 + shownTypes.size + errorLines;
 
         ctx.save();
         ctx.globalAlpha = 0.6;
@@ -218,6 +222,27 @@ export class DebugMode {
                 ctx.fillText(`${type}`, x, y);
                 ctx.fillStyle = '#b0bec5';
                 ctx.fillText(`HP:${stats.HP}  SPD:${stats.SPEED}  DMG:${stats.DAMAGE}`, x + 75, y);
+                y += lineHeight;
+            }
+        }
+
+        // 에러 로그 (있을 때만 표시, 빨간색)
+        if (errors.length > 0) {
+            y += 3;
+            ctx.fillStyle = '#ff5252';
+            ctx.fillText(`[Errors: ${errors.length}]`, x, y);
+            y += lineHeight;
+
+            // 최근 3개만 표시
+            const recentErrors = errors.slice(-3);
+            for (const err of recentErrors) {
+                ctx.fillStyle = '#ef9a9a';
+                const countText = err.count > 1 ? ` (x${err.count})` : '';
+                // 너무 긴 메시지는 잘라서 표시
+                const msg = err.message.length > 30
+                    ? err.message.substring(0, 30) + '...'
+                    : err.message;
+                ctx.fillText(`${err.source}: ${msg}${countText}`, x, y);
                 y += lineHeight;
             }
         }

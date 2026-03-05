@@ -23,6 +23,7 @@ import { GameOverUI } from '../ui/GameOverUI.js';
 import { VictoryUI } from '../ui/VictoryUI.js';
 import { CharSelectUI } from '../ui/CharSelectUI.js';
 import { DebugMode } from './DebugMode.js';
+import { ErrorGuard } from '../utils/ErrorGuard.js';
 
 /**
  * 게임 상태 열거값
@@ -104,22 +105,27 @@ export class Game {
      * @param {number} currentTime - 현재 시간 (밀리초)
      */
     _gameLoop(currentTime) {
-        // 델타타임 계산 (초 단위)
-        const dt = Math.min((currentTime - this._lastTime) / 1000, 0.1);
-        this._lastTime = currentTime;
+        try {
+            // 델타타임 계산 (초 단위)
+            const dt = Math.min((currentTime - this._lastTime) / 1000, 0.1);
+            this._lastTime = currentTime;
 
-        // 디버그 모드 업데이트 (배속 전 원본 dt 사용)
-        this.debug.update(this.input, this, dt);
+            // 디버그 모드 업데이트 (배속 전 원본 dt 사용)
+            this.debug.update(this.input, this, dt);
 
-        // 배속 적용된 dt로 게임 업데이트
-        const scaledDt = this.debug.getScaledDt(dt);
+            // 배속 적용된 dt로 게임 업데이트
+            const scaledDt = this.debug.getScaledDt(dt);
 
-        // 업데이트 → 렌더 → 입력 초기화
-        this._update(scaledDt);
-        this._render();
-        this.input.update(); // 프레임 끝에 입력 상태 리셋
+            // 업데이트 → 렌더 → 입력 초기화
+            this._update(scaledDt);
+            this._render();
+            this.input.update(); // 프레임 끝에 입력 상태 리셋
+        } catch (error) {
+            // 치명적 에러 발생 시 로그만 남기고 루프는 계속 진행
+            ErrorGuard.logError('GameLoop', error);
+        }
 
-        // 다음 프레임 예약
+        // 다음 프레임 예약 (try 밖 — 루프는 절대 죽지 않음)
         requestAnimationFrame(this._gameLoop);
     }
 
@@ -259,25 +265,25 @@ export class Game {
         // 적 스폰
         this.enemySpawner.update(dt, this.player, this.enemies, this.gameTime);
 
-        // 적 업데이트 (이동)
-        for (const enemy of this.enemies.getActive()) {
+        // 적 업데이트 (이동) — 1마리 에러 시 해당 적만 비활성화
+        ErrorGuard.safeLoopUpdate(this.enemies.getActive(), (enemy) => {
             enemy.update(dt, this.player.x, this.player.y);
-        }
+        });
 
         // 투사체 업데이트 (이동)
-        for (const proj of this.projectiles.getActive()) {
+        ErrorGuard.safeLoopUpdate(this.projectiles.getActive(), (proj) => {
             proj.update(dt);
-        }
+        });
 
         // 보석 업데이트 (자석 효과)
-        for (const gem of this.gems.getActive()) {
+        ErrorGuard.safeLoopUpdate(this.gems.getActive(), (gem) => {
             gem.update(dt, this.player.x, this.player.y, this.player.currentPickupRange);
-        }
+        });
 
         // 데미지 텍스트 업데이트
-        for (const text of this.damageTexts.getActive()) {
+        ErrorGuard.safeLoopUpdate(this.damageTexts.getActive(), (text) => {
             text.update(dt);
-        }
+        });
 
         // 충돌 판정 (내부에서 비활성 투사체/보석 정리도 수행)
         this.collisionSystem.update(this);
@@ -335,35 +341,35 @@ export class Game {
         // 배경 격자
         this._renderBackground();
 
-        // 갈릭 범위 이펙트 (있으면)
-        for (const weapon of this.player.weapons) {
+        // 무기 이펙트 렌더 (갈릭 범위, 채찍 호 등)
+        ErrorGuard.safeLoopRender(this.player.weapons, (weapon) => {
             if (weapon.render) {
                 weapon.render(this.ctx, this.camera, this.player.x, this.player.y);
             }
-        }
+        });
 
         // 보석
-        for (const gem of this.gems.getActive()) {
+        ErrorGuard.safeLoopRender(this.gems.getActive(), (gem) => {
             gem.render(this.ctx, this.camera);
-        }
+        });
 
         // 적
-        for (const enemy of this.enemies.getActive()) {
+        ErrorGuard.safeLoopRender(this.enemies.getActive(), (enemy) => {
             enemy.render(this.ctx, this.camera);
-        }
+        });
 
         // 플레이어
         this.player.render(this.ctx, this.camera);
 
         // 투사체
-        for (const proj of this.projectiles.getActive()) {
+        ErrorGuard.safeLoopRender(this.projectiles.getActive(), (proj) => {
             proj.render(this.ctx, this.camera);
-        }
+        });
 
         // 데미지 텍스트
-        for (const text of this.damageTexts.getActive()) {
+        ErrorGuard.safeLoopRender(this.damageTexts.getActive(), (text) => {
             text.render(this.ctx, this.camera);
-        }
+        });
     }
 
     /**

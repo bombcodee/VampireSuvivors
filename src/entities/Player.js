@@ -6,6 +6,7 @@
  * - 경험치를 모아 레벨업
  */
 import { PLAYER, CHARACTERS } from '../data/config.js';
+import { ErrorGuard } from '../utils/ErrorGuard.js';
 
 export class Player {
     /**
@@ -110,7 +111,12 @@ export class Player {
      */
     updateWeapons(dt, enemies, projectilePool, game) {
         for (const weapon of this.weapons) {
-            weapon.update(dt, this.x, this.y, enemies, projectilePool, game);
+            try {
+                weapon.update(dt, this.x, this.y, enemies, projectilePool, game);
+            } catch (error) {
+                // 무기 에러는 비활성화하지 않음 (다음 프레임에 복구 가능)
+                ErrorGuard.logError(`Weapon:${weapon.id}`, error);
+            }
         }
     }
 
