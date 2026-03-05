@@ -148,8 +148,14 @@ export class HUD {
         // 무기 목록을 아래에서 위로 표시
         for (let i = player.weapons.length - 1; i >= 0; i--) {
             const weapon = player.weapons[i];
-            ctx.fillStyle = '#90a4ae';
-            ctx.fillText(`${weapon.name} Lv.${weapon.level}`, x, y);
+            if (weapon.isEvolved) {
+                // 진화 무기는 금색 ★ 표시
+                ctx.fillStyle = '#ffd700';
+                ctx.fillText(`★ ${weapon.name}`, x, y);
+            } else {
+                ctx.fillStyle = '#90a4ae';
+                ctx.fillText(`${weapon.name} Lv.${weapon.level}`, x, y);
+            }
             y -= 18;
         }
     }

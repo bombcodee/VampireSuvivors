@@ -12,12 +12,15 @@ import { Enemy } from '../entities/Enemy.js';
 import { Gem } from '../entities/Gem.js';
 import { Projectile } from '../entities/Projectile.js';
 import { DamageText } from '../entities/DamageText.js';
+import { Chest } from '../entities/Chest.js';
 import { ObjectPool } from '../utils/ObjectPool.js';
 import { EnemySpawner } from '../systems/EnemySpawner.js';
 import { ExpSystem } from '../systems/ExpSystem.js';
 import { CollisionSystem } from '../systems/CollisionSystem.js';
+import { EvolutionSystem } from '../systems/EvolutionSystem.js';
 import { HUD } from '../ui/HUD.js';
 import { LevelUpUI } from '../ui/LevelUpUI.js';
+import { EvolutionUI } from '../ui/EvolutionUI.js';
 import { MenuUI } from '../ui/MenuUI.js';
 import { GameOverUI } from '../ui/GameOverUI.js';
 import { VictoryUI } from '../ui/VictoryUI.js';
@@ -34,6 +37,7 @@ const STATE = {
     CHARSELECT: 'CHARSELECT',
     PLAY: 'PLAY',
     LEVELUP: 'LEVELUP',
+    EVOLUTION: 'EVOLUTION',
     PAUSE: 'PAUSE',
     GAMEOVER: 'GAMEOVER',
     VICTORY: 'VICTORY',
@@ -67,15 +71,18 @@ export class Game {
         this.projectiles = new ObjectPool(() => new Projectile(), POOL_SIZES.PROJECTILES);
         this.gems = new ObjectPool(() => new Gem(), POOL_SIZES.GEMS);
         this.damageTexts = new ObjectPool(() => new DamageText(), POOL_SIZES.DAMAGE_TEXTS);
+        this.chests = new ObjectPool(() => new Chest(), POOL_SIZES.CHESTS);
 
         // ===== 게임 시스템 =====
         this.enemySpawner = new EnemySpawner();
         this.expSystem = new ExpSystem();
         this.collisionSystem = new CollisionSystem();
+        this.evolutionSystem = new EvolutionSystem();
 
         // ===== UI =====
         this.hud = new HUD();
         this.levelUpUI = new LevelUpUI();
+        this.evolutionUI = new EvolutionUI();
         this.menuUI = new MenuUI();
         this.charSelectUI = new CharSelectUI();
         this.gameOverUI = new GameOverUI();
@@ -147,6 +154,9 @@ export class Game {
             case STATE.LEVELUP:
                 this._updateLevelUp(dt);
                 break;
+            case STATE.EVOLUTION:
+                this._updateEvolution();
+                break;
             case STATE.PAUSE:
                 this._updatePause(dt);
                 break;
@@ -189,6 +199,12 @@ export class Game {
                 this._renderGame();
                 this.hud.render(this.ctx, this);
                 this.levelUpUI.render(this.ctx, this.canvas.width, this.canvas.height);
+                break;
+
+            case STATE.EVOLUTION:
+                this._renderGame();
+                this.hud.render(this.ctx, this);
+                this.evolutionUI.render(this.ctx, this.canvas.width, this.canvas.height);
                 break;
 
             case STATE.GAMEOVER:
@@ -285,6 +301,11 @@ export class Game {
             text.update(dt);
         });
 
+        // 상자 업데이트
+        ErrorGuard.safeLoopUpdate(this.chests.getActive(), (chest) => {
+            chest.update(dt);
+        });
+
         // 충돌 판정 (내부에서 비활성 투사체/보석 정리도 수행)
         this.collisionSystem.update(this);
 
@@ -292,6 +313,7 @@ export class Game {
         this.gems.releaseWhere(g => !g.active);
         this.damageTexts.releaseWhere(t => !t.active);
         this.enemies.releaseWhere(e => !e.active);
+        this.chests.releaseWhere(c => !c.active);
     }
 
     _updateLevelUp() {
@@ -309,6 +331,28 @@ export class Game {
             this.player.expToNext = this.expSystem.getExpToNext(this.player.level);
 
             // 게임 재개
+            this.state = STATE.PLAY;
+        }
+    }
+
+    _updateEvolution() {
+        const selectedIndex = this.evolutionUI.update(
+            this.input,
+            this.canvas.width,
+            this.canvas.height
+        );
+
+        if (selectedIndex >= 0) {
+            if (this.evolutionUI.isFallback) {
+                // 폴백 보상 적용
+                this.evolutionSystem.applyFallbackReward(this.player);
+            } else {
+                // 진화 실행
+                const evo = this.evolutionUI.evolutions[selectedIndex];
+                if (evo) {
+                    this.evolutionSystem.evolveWeapon(this.player, evo.id);
+                }
+            }
             this.state = STATE.PLAY;
         }
     }
@@ -346,6 +390,11 @@ export class Game {
             if (weapon.render) {
                 weapon.render(this.ctx, this.camera, this.player.x, this.player.y);
             }
+        });
+
+        // 상자
+        ErrorGuard.safeLoopRender(this.chests.getActive(), (chest) => {
+            chest.render(this.ctx, this.camera);
         });
 
         // 보석
@@ -450,6 +499,7 @@ export class Game {
         this.projectiles.releaseAll();
         this.gems.releaseAll();
         this.damageTexts.releaseAll();
+        this.chests.releaseAll();
 
         // 시스템 초기화
         this.enemySpawner.reset();
@@ -477,6 +527,16 @@ export class Game {
 
         // 레벨업 상태로 전환 (게임 일시정지)
         this.state = STATE.LEVELUP;
+    }
+
+    /**
+     * 상자 수집 시 호출된다 (CollisionSystem에서 호출)
+     * - 진화 가능 무기 체크 → EVOLUTION 상태 전환
+     */
+    onChestPickup() {
+        const eligible = this.evolutionSystem.getEligibleEvolutions(this.player);
+        this.evolutionUI.setEvolutions(eligible);
+        this.state = STATE.EVOLUTION;
     }
 
     /**

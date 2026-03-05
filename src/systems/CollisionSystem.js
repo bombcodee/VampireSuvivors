@@ -6,6 +6,7 @@
  * - 원형 충돌 판정(Circle Collision)을 사용한다
  */
 import { distance } from '../utils/MathUtils.js';
+import { CHEST } from '../data/config.js';
 
 export class CollisionSystem {
     /**
@@ -16,6 +17,7 @@ export class CollisionSystem {
         this._checkProjectileVsEnemy(game);
         this._checkEnemyVsPlayer(game);
         this._checkGemVsPlayer(game);
+        this._checkChestVsPlayer(game);
     }
 
     /**
@@ -131,6 +133,28 @@ export class CollisionSystem {
     }
 
     /**
+     * 상자 ↔ 플레이어 충돌 검사 (수집)
+     * - 상자는 자석 효과 없음, 직접 걸어가야 함
+     */
+    _checkChestVsPlayer(game) {
+        const player = game.player;
+        if (!player.active) return;
+
+        const chests = game.chests.getActive();
+
+        for (const chest of chests) {
+            if (!chest.active) continue;
+
+            const dist = distance(player.x, player.y, chest.x, chest.y);
+            if (dist < CHEST.PICKUP_RADIUS + player.radius) {
+                chest.active = false;
+                game.onChestPickup();
+                return; // 한 번에 1개만 수집
+            }
+        }
+    }
+
+    /**
      * 적 사망 시 처리
      * @param {Object} game - Game 인스턴스
      * @param {Object} enemy - 사망한 적
@@ -142,6 +166,12 @@ export class CollisionSystem {
         // 경험치 보석 드롭
         const gem = game.gems.get();
         gem.init(enemy.x, enemy.y, enemy.expValue);
+
+        // 보스 사망 시 상자 드롭
+        if (enemy.type === 'BOSS') {
+            const chest = game.chests.get();
+            chest.init(enemy.x, enemy.y);
+        }
 
         // 적 비활성화
         enemy.active = false;

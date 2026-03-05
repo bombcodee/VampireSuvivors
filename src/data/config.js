@@ -106,7 +106,8 @@ export const SPAWNER = {
         { time: 480, types: ['SKELETON'],           spawnCount: 8, interval: 0.25 },
         { time: 540, types: ['SKELETON'],           spawnCount: 10, interval: 0.2 },
     ],
-    BOSS_SPAWN_TIME: 300,       // 보스 등장 시간 (5분 = 300초)
+    BOSS_SPAWN_TIME: 300,       // 보스 첫 등장 시간 (5분 = 300초)
+    BOSS_RESPAWN_INTERVAL: 120, // 보스 재등장 간격 (2분 = 120초)
     // 시간 경과에 따른 적 스탯 스케일링 (5분 이후 적용)
     SCALING_START_TIME: 300,    // 스케일링 시작 시간 (초)
     SCALING_HP_PER_MIN: 0.15,   // 분당 HP 증가율 (15%)
@@ -300,6 +301,7 @@ export const POOL_SIZES = {
     PROJECTILES: 150,
     GEMS: 400,
     DAMAGE_TEXTS: 30,
+    CHESTS: 5,
 };
 
 // ===== 카메라 설정 =====
@@ -308,9 +310,60 @@ export const CAMERA = {
     SHAKE_DURATION: 0.15,       // 화면 흔들림 지속 시간 (초)
 };
 
+// ===== 보물 상자 설정 =====
+export const CHEST = {
+    RADIUS: 18,                 // 상자 크기
+    COLOR: '#ffd700',           // 금색
+    PICKUP_RADIUS: 30,          // 자동 수집 범위
+    BOB_SPEED: 2,               // 위아래 흔들림 속도
+    GLOW_COLOR: 'rgba(255, 215, 0, 0.3)',
+    FALLBACK_HEAL: 30,          // 진화 불가 시 체력 회복량
+    FALLBACK_EXP: 50,           // 진화 불가 시 경험치 보상
+};
+
+// ===== 무기 진화 설정 =====
+export const EVOLUTIONS = {
+    // Magic Wand (Lv5) + Armor = Holy Wand
+    HOLY_WAND: {
+        NAME: 'Holy Wand',
+        DESCRIPTION: '신성한 마법탄이 적을 관통한다',
+        BASE_WEAPON: 'MAGIC_WAND',
+        REQUIRED_PASSIVE: 'ARMOR',
+        COLOR: '#e1f5fe',
+        STATS: { damage: 40, cooldown: 0.4, speed: 500, count: 5, size: 10, pierce: 3 },
+    },
+    // Garlic (Lv5) + HP Boost = Soul Eater
+    SOUL_EATER: {
+        NAME: 'Soul Eater',
+        DESCRIPTION: '거대한 영혼 폭풍이 적의 생명력을 흡수한다',
+        BASE_WEAPON: 'GARLIC',
+        REQUIRED_PASSIVE: 'MAX_HP_UP',
+        COLOR: '#b388ff',
+        STATS: { damage: 25, cooldown: 0.5, radius: 180, knockback: 40, lifesteal: 2 },
+    },
+    // Whip (Lv5) + Speed Boost = Bloody Tear
+    BLOODY_TEAR: {
+        NAME: 'Bloody Tear',
+        DESCRIPTION: '전방위 피의 채찍이 적을 찢고 생명력을 흡수한다',
+        BASE_WEAPON: 'WHIP',
+        REQUIRED_PASSIVE: 'MOVE_SPEED',
+        COLOR: '#d50000',
+        STATS: { damage: 60, cooldown: 0.6, range: 170, knockback: 30, lifesteal: 3 },
+    },
+    // Knife (Lv5) + Magnet = Thousand Edge
+    THOUSAND_EDGE: {
+        NAME: 'Thousand Edge',
+        DESCRIPTION: '사방으로 수많은 나이프를 쏟아낸다',
+        BASE_WEAPON: 'KNIFE',
+        REQUIRED_PASSIVE: 'PICKUP_RANGE',
+        COLOR: '#cfd8dc',
+        STATS: { damage: 18, cooldown: 0.2, speed: 650, count: 8, size: 5 },
+    },
+};
+
 // ===== 게임 전체 설정 =====
 export const GAME = {
-    GAME_DURATION: 600,         // 게임 제한 시간 (10분 = 600초)
+    GAME_DURATION: 1800,        // 게임 제한 시간 (30분 = 1800초)
     BACKGROUND_GRID_SIZE: 64,   // 배경 격자 크기 (px)
     BACKGROUND_COLOR: '#1a1a2e',
     BACKGROUND_LINE_COLOR: '#16213e',

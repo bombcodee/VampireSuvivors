@@ -4,7 +4,7 @@
  * - 레벨업 시 선택지를 생성한다 (무기/패시브 중 랜덤 3개)
  * - 플레이어 경험치 상태를 관리한다
  */
-import { EXP, WEAPONS, PASSIVES } from '../data/config.js';
+import { EXP, WEAPONS, PASSIVES, EVOLUTIONS } from '../data/config.js';
 import { shuffle } from '../utils/MathUtils.js';
 import { MagicWand } from '../weapons/MagicWand.js';
 import { Garlic } from '../weapons/Garlic.js';
@@ -57,6 +57,12 @@ export class ExpSystem {
             const existingWeapon = player.getWeapon(weaponId);
 
             if (!existingWeapon) {
+                // 진화된 무기가 있으면 기본 무기 선택지 제외
+                const isEvolved = Object.entries(EVOLUTIONS).some(
+                    ([evoId, evo]) => evo.BASE_WEAPON === weaponId && player.getWeapon(evoId)
+                );
+                if (isEvolved) continue;
+
                 // 아직 없는 무기 → "새 무기 획득" 선택지
                 choices.push({
                     type: 'NEW_WEAPON',

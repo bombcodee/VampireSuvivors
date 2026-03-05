@@ -8,7 +8,7 @@
  * - K: 적 전체 처치
  * - 배포 시에는 비활성화할 것
  */
-import { SPAWNER, ENEMY } from '../data/config.js';
+import { SPAWNER, ENEMY, WEAPONS, PASSIVES } from '../data/config.js';
 import { UI } from '../data/config.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 
@@ -22,6 +22,8 @@ export class DebugMode {
         this.timeScale = 1;         // 배속 (1, 2, 4)
         this.magnetMode = false;    // 파워자석 모드 (전체 보석 흡수)
         this.autoLevelUp = false;   // 자동 레벨업 (랜덤 선택)
+        this._weaponSelectMode = false;  // V키: 무기 선택 패널
+        this._passiveSelectMode = false; // P키: 패시브 선택 패널
 
         // ===== FPS 측정 =====
         this._frameCount = 0;
@@ -85,6 +87,37 @@ export class DebugMode {
             this.autoLevelUp = !this.autoLevelUp;
         }
 
+        // C: 테스트용 상자 강제 스폰 (플레이어 근처)
+        if (input.isKeyPressed('KeyC')) {
+            this._spawnTestChest(game);
+        }
+
+        // V: 무기 선택 패널 토글 (P 모드 해제)
+        if (input.isKeyPressed('KeyV')) {
+            this._weaponSelectMode = !this._weaponSelectMode;
+            this._passiveSelectMode = false;
+        }
+
+        // P: 패시브 선택 패널 토글 (V 모드 해제)
+        if (input.isKeyPressed('KeyP')) {
+            this._passiveSelectMode = !this._passiveSelectMode;
+            this._weaponSelectMode = false;
+        }
+
+        // 숫자키: 선택 패널에서 항목 선택
+        if (this._weaponSelectMode || this._passiveSelectMode) {
+            for (let i = 1; i <= 8; i++) {
+                if (input.isKeyPressed(`Digit${i}`)) {
+                    if (this._weaponSelectMode) {
+                        this._maxWeaponByIndex(game, i - 1);
+                    } else {
+                        this._grantPassiveByIndex(game, i - 1);
+                    }
+                    break;
+                }
+            }
+        }
+
         // 파워자석 활성 시: 모든 보석을 플레이어에게 끌어당김
         if (this.magnetMode) {
             this._pullAllGems(game);
@@ -116,6 +149,7 @@ export class DebugMode {
 
         this._renderInfoPanel(ctx, game);
         this._renderKeyHelp(ctx, game);
+        this._renderSelectPanel(ctx, game);
     }
 
     /**
@@ -265,6 +299,9 @@ export class DebugMode {
             'K  : Kill All',
             `M  : Magnet ${this.magnetMode ? 'ON' : 'OFF'}`,
             `A  : Auto LvUp ${this.autoLevelUp ? 'ON' : 'OFF'}`,
+            'C  : Spawn Chest',
+            'V  : Weapon → MAX',
+            'P  : Grant Passive',
         ];
 
         const x = canvasW - 155;
@@ -290,6 +327,129 @@ export class DebugMode {
     }
 
     /**
+     * V/P 선택 패널을 좌하단에 그린다 (HUD 무기 목록 위에 덮어씀)
+     */
+    _renderSelectPanel(ctx, game) {
+        if (!this._weaponSelectMode && !this._passiveSelectMode) return;
+
+        const player = game.player;
+        const x = 12;
+        const lineHeight = 18;
+        const isWeapon = this._weaponSelectMode;
+
+        // 표시할 항목 목록 생성
+        const entries = isWeapon ? Object.entries(WEAPONS) : Object.entries(PASSIVES);
+        const title = isWeapon ? '[V] Weapon → Lv.MAX (1-8)' : '[P] Passive → Grant (1-4)';
+
+        // 패널 높이 계산 (타이틀 + 항목 수)
+        const panelHeight = (entries.length + 1) * lineHeight + 12;
+        const panelY = game.canvas.height - panelHeight - 4;
+
+        ctx.save();
+
+        // 불투명 배경 (HUD 무기 목록을 완전히 덮음)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(x - 4, panelY, 230, panelHeight);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x - 4, panelY, 230, panelHeight);
+
+        let y = panelY + lineHeight;
+
+        // 타이틀
+        ctx.font = `bold 12px ${UI.FONT_FAMILY}`;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(title, x, y);
+        y += lineHeight;
+
+        // 항목 목록
+        ctx.font = `12px ${UI.FONT_FAMILY}`;
+        for (let i = 0; i < entries.length; i++) {
+            const [id, config] = entries[i];
+            const num = i + 1;
+
+            if (isWeapon) {
+                const weapon = player.getWeapon(id);
+                if (weapon) {
+                    const isMax = weapon.level >= (config.MAX_LEVEL || 5);
+                    ctx.fillStyle = isMax ? '#69f0ae' : '#ffffff';
+                    const lvText = isMax ? 'MAX' : `Lv.${weapon.level}`;
+                    ctx.fillText(`[${num}] ${config.NAME}  ${lvText}`, x, y);
+                } else {
+                    // 미보유 무기
+                    ctx.fillStyle = '#555555';
+                    ctx.fillText(`[${num}] ${config.NAME}  (없음)`, x, y);
+                }
+            } else {
+                const level = player.passiveLevels[id] || 0;
+                if (level > 0) {
+                    const isMax = level >= (config.MAX_LEVEL || 5);
+                    ctx.fillStyle = isMax ? '#69f0ae' : '#ffffff';
+                    const lvText = isMax ? 'MAX' : `Lv.${level}`;
+                    ctx.fillText(`[${num}] ${config.NAME}  ${lvText}`, x, y);
+                } else {
+                    ctx.fillStyle = '#555555';
+                    ctx.fillText(`[${num}] ${config.NAME}  (없음)`, x, y);
+                }
+            }
+            y += lineHeight;
+        }
+
+        ctx.restore();
+    }
+
+    /**
+     * 무기 슬롯 인덱스로 해당 무기를 MAX 레벨로 올린다
+     * - 보유 중이면 MAX로, 미보유면 추가 후 MAX
+     */
+    _maxWeaponByIndex(game, index) {
+        const weaponEntries = Object.entries(WEAPONS);
+        if (index >= weaponEntries.length) return;
+
+        const [weaponId, config] = weaponEntries[index];
+        const player = game.player;
+        let weapon = player.getWeapon(weaponId);
+
+        // 미보유 무기면 새로 추가
+        if (!weapon) {
+            const WeaponClass = game.expSystem._weaponClasses[weaponId];
+            if (!WeaponClass) return;
+            weapon = new WeaponClass();
+            player.addWeapon(weapon);
+        }
+
+        // MAX 레벨까지 올리기
+        const maxLevel = config.MAX_LEVEL || 5;
+        while (weapon.level < maxLevel) {
+            weapon.levelUp();
+        }
+
+        this._weaponSelectMode = false;
+    }
+
+    /**
+     * 패시브 인덱스로 해당 패시브를 부여한다
+     */
+    _grantPassiveByIndex(game, index) {
+        const passiveEntries = Object.entries(PASSIVES);
+        if (index >= passiveEntries.length) return;
+
+        const [passiveId] = passiveEntries[index];
+        const player = game.player;
+
+        // 이미 보유 중이면 스킵
+        if (player.passiveLevels[passiveId] > 0) {
+            this._passiveSelectMode = false;
+            return;
+        }
+
+        // 패시브 부여 (ExpSystem의 내부 메서드 활용)
+        game.expSystem._applyPassive(player, passiveId);
+        this._passiveSelectMode = false;
+    }
+
+    /**
      * 모든 보석을 플레이어에게 강제 흡수시킨다
      */
     _pullAllGems(game) {
@@ -309,6 +469,14 @@ export class DebugMode {
         game.expSystem.applyChoice(game.player, choices[randomIndex]);
         game.player.expToNext = game.expSystem.getExpToNext(game.player.level);
         game.state = 'PLAY';
+    }
+
+    /**
+     * 테스트용 상자를 플레이어 근처에 스폰한다
+     */
+    _spawnTestChest(game) {
+        const chest = game.chests.get();
+        chest.init(game.player.x + 60, game.player.y);
     }
 
     /**

@@ -222,6 +222,19 @@ export class Player {
     }
 
     /**
+     * 기존 무기를 새 무기로 교체한다 (진화 시스템용)
+     * @param {string} oldWeaponId - 교체할 기존 무기 ID
+     * @param {Object} newWeapon - 새 무기 인스턴스
+     * @returns {boolean} 교체 성공 여부
+     */
+    replaceWeapon(oldWeaponId, newWeapon) {
+        const index = this.weapons.findIndex(w => w.id === oldWeaponId);
+        if (index === -1) return false;
+        this.weapons[index] = newWeapon;
+        return true;
+    }
+
+    /**
      * 게임 재시작 시 플레이어를 초기 상태로 리셋한다
      * @param {number} x - 시작 X 위치
      * @param {number} y - 시작 Y 위치

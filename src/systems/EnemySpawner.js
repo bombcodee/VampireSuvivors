@@ -12,6 +12,7 @@ export class EnemySpawner {
         this.spawnTimer = 0;            // 스폰 쿨타임 타이머
         this.currentWaveIndex = 0;      // 현재 웨이브 인덱스
         this.bossSpawned = false;       // 보스 스폰 여부
+        this._lastBossTime = 0;         // 마지막 보스 스폰 시간
     }
 
     /**
@@ -44,10 +45,16 @@ export class EnemySpawner {
             }
         }
 
-        // 보스 스폰 체크
+        // 보스 스폰 체크 (첫 등장 + 이후 반복)
         if (!this.bossSpawned && gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
-            this._spawnBoss(player, enemyPool);
+            this._spawnBoss(player, enemyPool, gameTime);
             this.bossSpawned = true;
+            this._lastBossTime = gameTime;
+        } else if (this.bossSpawned && SPAWNER.BOSS_RESPAWN_INTERVAL > 0) {
+            if (gameTime - this._lastBossTime >= SPAWNER.BOSS_RESPAWN_INTERVAL) {
+                this._spawnBoss(player, enemyPool, gameTime);
+                this._lastBossTime = gameTime;
+            }
         }
 
         // 너무 멀리 떨어진 적 디스폰 (성능 최적화)
@@ -120,17 +127,21 @@ export class EnemySpawner {
     }
 
     /**
-     * 보스를 스폰한다
+     * 보스를 스폰한다 (시간 스케일링 적용)
      * @param {Object} player - 플레이어
      * @param {ObjectPool} enemyPool - 적 풀
+     * @param {number} gameTime - 현재 게임 시간
      */
-    _spawnBoss(player, enemyPool) {
+    _spawnBoss(player, enemyPool, gameTime) {
         const angle = randomAngle();
         const x = player.x + Math.cos(angle) * SPAWNER.SPAWN_DISTANCE;
         const y = player.y + Math.sin(angle) * SPAWNER.SPAWN_DISTANCE;
 
+        // 보스도 시간 스케일링 적용
+        const stats = this._getScaledStats(ENEMY.BOSS, gameTime);
+
         const boss = enemyPool.get();
-        boss.init(x, y, ENEMY.BOSS, 'BOSS');
+        boss.init(x, y, stats, 'BOSS');
     }
 
     /**
@@ -154,5 +165,6 @@ export class EnemySpawner {
         this.spawnTimer = 0;
         this.currentWaveIndex = 0;
         this.bossSpawned = false;
+        this._lastBossTime = 0;
     }
 }
