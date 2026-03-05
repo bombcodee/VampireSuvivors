@@ -10,6 +10,10 @@ import { HolyWand } from '../weapons/HolyWand.js';
 import { SoulEater } from '../weapons/SoulEater.js';
 import { BloodyTear } from '../weapons/BloodyTear.js';
 import { ThousandEdge } from '../weapons/ThousandEdge.js';
+import { LaBorra } from '../weapons/LaBorra.js';
+import { UnholyVespers } from '../weapons/UnholyVespers.js';
+import { Hellfire } from '../weapons/Hellfire.js';
+import { ThunderLoop } from '../weapons/ThunderLoop.js';
 
 // 진화 ID → 진화 무기 클래스 매핑
 const EVOLVED_CLASSES = {
@@ -17,6 +21,10 @@ const EVOLVED_CLASSES = {
     'SOUL_EATER': SoulEater,
     'BLOODY_TEAR': BloodyTear,
     'THOUSAND_EDGE': ThousandEdge,
+    'LA_BORRA': LaBorra,
+    'UNHOLY_VESPERS': UnholyVespers,
+    'HELLFIRE': Hellfire,
+    'THUNDER_LOOP': ThunderLoop,
 };
 
 export class EvolutionSystem {

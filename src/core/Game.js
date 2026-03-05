@@ -25,6 +25,7 @@ import { MenuUI } from '../ui/MenuUI.js';
 import { GameOverUI } from '../ui/GameOverUI.js';
 import { VictoryUI } from '../ui/VictoryUI.js';
 import { CharSelectUI } from '../ui/CharSelectUI.js';
+import { PauseUI } from '../ui/PauseUI.js';
 import { DebugMode } from './DebugMode.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 
@@ -87,6 +88,7 @@ export class Game {
         this.charSelectUI = new CharSelectUI();
         this.gameOverUI = new GameOverUI();
         this.victoryUI = new VictoryUI();
+        this.pauseUI = new PauseUI();
 
         // ===== 레벨업 선택지 =====
         this._currentChoices = [];
@@ -456,21 +458,10 @@ export class Game {
     }
 
     /**
-     * 일시정지 오버레이
+     * 일시정지 오버레이 (PauseUI에 위임)
      */
     _renderPauseOverlay() {
-        const ctx = this.ctx;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 36px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2 - 10);
-
-        ctx.font = '16px Arial';
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillText('Press ESC to resume', this.canvas.width / 2, this.canvas.height / 2 + 25);
+        this.pauseUI.render(this.ctx, this.canvas.width, this.canvas.height, this.player);
     }
 
     // ===== 게임 이벤트 =====

@@ -330,7 +330,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'MAGIC_WAND',
         REQUIRED_PASSIVE: 'ARMOR',
         COLOR: '#e1f5fe',
-        STATS: { damage: 40, cooldown: 0.4, speed: 500, count: 5, size: 10, pierce: 3 },
+        STATS: { damage: 30, cooldown: 0.5, speed: 500, count: 4, size: 10, pierce: 2 },
     },
     // Garlic (Lv5) + HP Boost = Soul Eater
     SOUL_EATER: {
@@ -339,7 +339,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'GARLIC',
         REQUIRED_PASSIVE: 'MAX_HP_UP',
         COLOR: '#b388ff',
-        STATS: { damage: 25, cooldown: 0.5, radius: 180, knockback: 40, lifesteal: 2 },
+        STATS: { damage: 18, cooldown: 0.6, radius: 150, knockback: 40, lifesteal: 1 },
     },
     // Whip (Lv5) + Speed Boost = Bloody Tear
     BLOODY_TEAR: {
@@ -348,7 +348,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'WHIP',
         REQUIRED_PASSIVE: 'MOVE_SPEED',
         COLOR: '#d50000',
-        STATS: { damage: 60, cooldown: 0.6, range: 170, knockback: 30, lifesteal: 3 },
+        STATS: { damage: 40, cooldown: 0.8, range: 150, knockback: 30, lifesteal: 2 },
     },
     // Knife (Lv5) + Magnet = Thousand Edge
     THOUSAND_EDGE: {
@@ -357,7 +357,43 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'KNIFE',
         REQUIRED_PASSIVE: 'PICKUP_RANGE',
         COLOR: '#cfd8dc',
-        STATS: { damage: 18, cooldown: 0.2, speed: 650, count: 8, size: 5 },
+        STATS: { damage: 12, cooldown: 0.3, speed: 650, count: 6, size: 5 },
+    },
+    // Holy Water (Lv5) + Magnet = La Borra
+    LA_BORRA: {
+        NAME: 'La Borra',
+        DESCRIPTION: '플레이어를 따라다니는 거대한 성수 장판',
+        BASE_WEAPON: 'HOLY_WATER',
+        REQUIRED_PASSIVE: 'PICKUP_RANGE',
+        COLOR: '#42a5f5',
+        STATS: { damage: 12, cooldown: 0.3, radius: 100, tickRate: 0.35 },
+    },
+    // King Bible (Lv5) + Armor = Unholy Vespers
+    UNHOLY_VESPERS: {
+        NAME: 'Unholy Vespers',
+        DESCRIPTION: '영원히 회전하는 6권의 성서 궤도',
+        BASE_WEAPON: 'KING_BIBLE',
+        REQUIRED_PASSIVE: 'ARMOR',
+        COLOR: '#ea80fc',
+        STATS: { damage: 15, orbitRadius: 120, count: 6, speed: 3.5 },
+    },
+    // Fire Wand (Lv5) + HP Boost = Hellfire
+    HELLFIRE: {
+        NAME: 'Hellfire',
+        DESCRIPTION: '거대한 관통 화염구를 발사한다',
+        BASE_WEAPON: 'FIRE_WAND',
+        REQUIRED_PASSIVE: 'MAX_HP_UP',
+        COLOR: '#ff3d00',
+        STATS: { damage: 40, cooldown: 0.8, speed: 350, count: 2, size: 16, pierce: 6 },
+    },
+    // Lightning Ring (Lv5) + Speed Boost = Thunder Loop
+    THUNDER_LOOP: {
+        NAME: 'Thunder Loop',
+        DESCRIPTION: '5개 대상에게 연쇄 번개를 내린다',
+        BASE_WEAPON: 'LIGHTNING_RING',
+        REQUIRED_PASSIVE: 'MOVE_SPEED',
+        COLOR: '#ffd600',
+        STATS: { damage: 25, cooldown: 0.8, count: 5, range: 450 },
     },
 };
 
