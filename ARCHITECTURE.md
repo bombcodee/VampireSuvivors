@@ -15,8 +15,7 @@
                                │
                  ┌─────────────▼─────────────┐
                  │        Game (싱글톤)        │  ← 게임 전체를 관리하는 중앙 매니저
-                 │  - 상태: MENU/PLAY/PAUSE/  │
-                 │         LEVELUP/GAMEOVER   │
+                 │  - 상태: 9종 (MENU~VICTORY)│
                  │  - 모든 시스템을 소유       │
                  └─────────────┬─────────────┘
                                │ 매 프레임마다
@@ -57,11 +56,15 @@
 
 | 상태 | Update | Render | Input |
 |------|--------|--------|-------|
-| MENU | X | 메뉴 화면 | 시작 버튼 |
+| MENU | X | 메뉴 화면 | Enter=시작, C=캐릭터선택, S=상점 |
+| CHARSELECT | X | 캐릭터 선택 화면 | ←→=선택, Enter=확정 |
+| SHOP | X | 업그레이드 상점 | ↑↓=선택, Enter=구매, ESC=닫기 |
 | PLAY | 모든 시스템 | 게임 화면 | 이동 (WASD/방향키) |
 | LEVELUP | X (멈춤) | 게임 화면 + 선택 UI | 마우스 클릭 (무기 선택) |
+| EVOLUTION | X (멈춤) | 게임 화면 + 진화 UI | 클릭 (진화 선택) |
 | PAUSE | X (멈춤) | 게임 화면 + 일시정지 표시 | ESC (재개) |
-| GAMEOVER | X | 결과 화면 | 재시작/메뉴 버튼 |
+| GAMEOVER | X | 결과 화면 | Enter=메뉴 |
+| VICTORY | X | 클리어 화면 | Enter=메뉴 |
 
 ---
 
@@ -154,9 +157,11 @@ WeaponSystem: 쿨타임 체크 → 투사체 발사
 적 HP 감소            투사체 소멸
     ↓
   [적 사망?]
-   Yes → 보석 드롭 → 플레이어 흡수 → 경험치 +
-    ↓                                    ↓
-킬 카운트 +                        [레벨업?]
+   Yes → Enemy.onDeath(game)
+    ↓     (킬수++, 골드, 보석 드롭, 보스상자)
+    ↓     → 플레이어 보석 흡수 → 경험치 +
+    ↓                                ↓
+                                [레벨업?]
                                     Yes → LEVELUP 상태
                                       ↓
                                   무기/패시브 선택
@@ -202,11 +207,11 @@ Layer 7: UI 오버레이 (레벨업 선택, 일시정지, 게임오버)
 
 ```
 풀링 대상:
-├── Enemy Pool       (최대 300개 미리 생성)
-├── Projectile Pool  (최대 200개 미리 생성)
-├── Gem Pool         (최대 500개 미리 생성)
-├── DamageText Pool  (최대 50개 미리 생성)
-└── Particle Pool    (최대 100개 미리 생성)
+├── Enemy Pool       (최대 250개 미리 생성)
+├── Projectile Pool  (최대 150개 미리 생성)
+├── Gem Pool         (최대 400개 미리 생성)
+├── DamageText Pool  (최대 30개 미리 생성)
+└── Chest Pool       (최대 5개 미리 생성)
 
 동작 방식:
 1. 게임 시작 시 → 풀에 비활성 객체를 미리 생성
@@ -222,32 +227,32 @@ Layer 7: UI 오버레이 (레벨업 선택, 일시정지, 게임오버)
 ```
 main.js
 └── Game.js
-    ├── Input.js          (키보드 입력)
-    ├── Camera.js         (카메라/뷰포트)
-    ├── Player.js
-    │   └── Weapon.js     (보유 무기)
-    ├── EnemySystem.js
-    │   ├── Enemy.js      (적 개체)
-    │   └── ObjectPool.js (적 풀링)
-    ├── WeaponSystem.js
-    │   ├── weapons/      (각 무기 클래스)
-    │   ├── Projectile.js (투사체)
-    │   └── ObjectPool.js (투사체 풀링)
-    ├── ExpSystem.js
-    │   ├── Gem.js        (경험치 보석)
-    │   └── ObjectPool.js (보석 풀링)
-    ├── StageSystem.js
-    ├── UpgradeSystem.js
-    └── ui/
-        ├── HUD.js
-        ├── LevelUpUI.js
-        ├── GameOverUI.js
-        └── MenuUI.js
-
-data/
-├── weapons.json       (무기 스탯 데이터)
-├── enemies.json       (적 스탯 데이터)
-├── passives.json      (패시브 아이템 데이터)
-├── stages.json        (스테이지 시간표)
-└── config.json        (게임 설정값)
+    ├── Input.js            (키보드/마우스 입력)
+    ├── Camera.js           (카메라/뷰포트)
+    ├── DebugMode.js        (디버그 도구: F1 토글)
+    ├── Player.js           (이동, 체력, 무기 장착)
+    ├── entities/
+    │   ├── Enemy.js        (적 개체, onDeath 통합)
+    │   ├── Gem.js          (경험치 보석)
+    │   ├── Projectile.js   (투사체)
+    │   ├── DamageText.js   (데미지 숫자)
+    │   └── Chest.js        (보물상자)
+    ├── weapons/            (기본 8종 + 진화 8종)
+    ├── systems/
+    │   ├── EnemySpawner.js (웨이브/보스 스폰)
+    │   ├── CollisionSystem.js (충돌 판정)
+    │   ├── ExpSystem.js    (레벨업 선택지)
+    │   ├── EvolutionSystem.js (무기 진화)
+    │   └── UpgradeSystem.js (영구 업그레이드)
+    ├── ui/
+    │   ├── HUD.js, MenuUI.js, CharSelectUI.js
+    │   ├── LevelUpUI.js, EvolutionUI.js
+    │   ├── PauseUI.js, UpgradeShopUI.js
+    │   ├── GameOverUI.js, VictoryUI.js
+    │   └── (모든 UI는 Game 인스턴스 참조)
+    ├── data/
+    │   └── config.js       (모든 게임 수치 통합)
+    └── utils/
+        ├── MathUtils.js, ObjectPool.js
+        ├── ErrorGuard.js, Storage.js
 ```

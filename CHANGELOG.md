@@ -53,11 +53,33 @@
 
 ---
 
+## [0.2.0] - 2026-03-07 (Phase 2: 게임 완성)
+
+### Added (추가)
+- 무기 6종 추가: HolyWater, KingBible, FireWand, Knife, LightningRing, Whip
+- 무기 진화 시스템: 8종 진화 무기 (HolyWand, SoulEater, BloodyTear, ThousandEdge, LaBorra, UnholyVespers, Hellfire, ThunderLoop)
+- 캐릭터 선택: Antonio(공격력+10%), Imelda(경험치+10%), Pasqualina(투사체속도+10%)
+- 골드 시스템 + 영구 업그레이드 상점 (6종: 이동속도, 최대HP, 방어력, 공격력, 경험치, 골드)
+- 디버그 모드: F1 토글 (A=자동레벨업, M=자석, K=전체처치, B=골드+1000, E=진화)
+- ErrorGuard + Storage 기반 강화
+- UI: PauseUI, CharSelectUI, UpgradeShopUI, EvolutionUI, VictoryUI
+- 보물상자: 보스 처치 시 드롭, 진화 또는 폴백 보상
+
+### Changed (변경)
+- 적 사망 처리: Enemy.onDeath(game)으로 통합 (11곳 → 1곳)
+- 매직 넘버: config.js로 이동 (SPREAD_ANGLE, HIT_COOLDOWN, COLLISION_RADIUS)
+- 설계 규칙: 줄 수 기반 → 역할 기반으로 변경
+
+### Fixed (수정)
+- 범위 무기 골드 미지급 버그
+- 범위 무기 보스 상자 미드롭 버그
+- 배율 미적용 버그 (6종 무기)
+
+---
+
 ## [Unreleased] - 다음 버전에 포함될 예정
 
 ### Planned (예정)
-- Phase 2: 무기 종류 추가 (5종 이상)
-- Phase 2: 무기 진화 시스템
-- Phase 2: 영구 업그레이드 (골드 시스템)
-- Phase 2: 캐릭터 선택 (3종 이상)
-- Phase 2: 사운드 & 이펙트
+- Phase 3: 사운드 & VFX (SoundManager, ParticlePool, ScreenEffects)
+- Phase 3: 무기 데미지 텍스트 색상 정리
+- Phase 3: 흡혈 시각 표시
