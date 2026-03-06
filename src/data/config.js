@@ -397,6 +397,75 @@ export const EVOLUTIONS = {
     },
 };
 
+// ===== 골드 설정 =====
+export const GOLD = {
+    BAT: 1,                     // 박쥐 처치 골드
+    ZOMBIE: 2,                  // 좀비 처치 골드
+    SKELETON: 3,                // 스켈레톤 처치 골드
+    BOSS: 25,                   // 보스 처치 골드
+    TIME_BONUS_INTERVAL: 300,   // 시간 보너스 간격 (5분 = 300초)
+    TIME_BONUS_RATE: 0.2,       // 간격당 보너스 증가율 (+20%)
+    TIME_BONUS_MAX: 1.2,        // 최대 시간 보너스 (+120%)
+};
+
+// ===== 영구 업그레이드 설정 =====
+export const UPGRADES = {
+    MOVE_SPEED: {
+        NAME: '이동 속도',
+        DESCRIPTION: '이동 속도 +5%',
+        STAT: 'speedMultiplier',
+        TYPE: 'multiply',       // multiply: 기존값에 += value
+        VALUES: [0.05, 0.05, 0.05, 0.05, 0.05],
+        COSTS: [100, 200, 400, 800, 1500],
+        COLOR: '#4fc3f7',
+    },
+    MAX_HP: {
+        NAME: '최대 체력',
+        DESCRIPTION: '최대 HP +10',
+        STAT: 'maxHp',
+        TYPE: 'add',            // add: 기존값에 += value
+        VALUES: [10, 10, 10, 10, 10],
+        COSTS: [100, 200, 400, 800, 1500],
+        COLOR: '#ef5350',
+    },
+    ARMOR: {
+        NAME: '방어력',
+        DESCRIPTION: '방어력 +1',
+        STAT: 'armor',
+        TYPE: 'add',
+        VALUES: [1, 1, 1, 1, 1],
+        COSTS: [150, 300, 600, 1200, 2000],
+        COLOR: '#78909c',
+    },
+    DAMAGE: {
+        NAME: '공격력',
+        DESCRIPTION: '공격력 +5%',
+        STAT: 'damageMultiplier',
+        TYPE: 'multiply',
+        VALUES: [0.05, 0.05, 0.05, 0.05, 0.05],
+        COSTS: [150, 300, 600, 1200, 2000],
+        COLOR: '#ff7043',
+    },
+    EXP_GAIN: {
+        NAME: '경험치 획득',
+        DESCRIPTION: '경험치 획득 +8%',
+        STAT: 'expMultiplier',
+        TYPE: 'multiply',
+        VALUES: [0.08, 0.08, 0.08, 0.08, 0.08],
+        COSTS: [200, 400, 800, 1500, 2500],
+        COLOR: '#69f0ae',
+    },
+    GOLD_GAIN: {
+        NAME: '골드 획득',
+        DESCRIPTION: '골드 획득 +10%',
+        STAT: 'goldMultiplier',
+        TYPE: 'multiply',
+        VALUES: [0.1, 0.1, 0.1, 0.1, 0.1],
+        COSTS: [200, 400, 800, 1500, 2500],
+        COLOR: '#ffd54f',
+    },
+};
+
 // ===== 게임 전체 설정 =====
 export const GAME = {
     GAME_DURATION: 1800,        // 게임 제한 시간 (30분 = 1800초)

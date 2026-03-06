@@ -8,9 +8,10 @@
  * - K: 적 전체 처치
  * - 배포 시에는 비활성화할 것
  */
-import { SPAWNER, ENEMY, WEAPONS, PASSIVES } from '../data/config.js';
+import { SPAWNER, ENEMY, WEAPONS, PASSIVES, GAME } from '../data/config.js';
 import { UI } from '../data/config.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
+import { Storage } from '../utils/Storage.js';
 
 export class DebugMode {
     constructor() {
@@ -90,6 +91,24 @@ export class DebugMode {
         // C: 테스트용 상자 강제 스폰 (플레이어 근처)
         if (input.isKeyPressed('KeyC')) {
             this._spawnTestChest(game);
+        }
+
+        // B: 골드 +1000 (빠른 테스트용, HUD + 상점 둘 다 반영)
+        if (input.isKeyPressed('KeyB')) {
+            game.goldEarned += 1000;   // HUD에서 바로 보이게
+            game.totalGold += 1000;    // 상점에서 쓸 수 있게
+            Storage.save('gold', game.totalGold);
+        }
+
+        // X: 즉사 (GameOver 테스트)
+        if (input.isKeyPressed('KeyX')) {
+            game.player.hp = 0;
+            game.onPlayerDeath();
+        }
+
+        // N: 즉승 (Victory 테스트)
+        if (input.isKeyPressed('KeyN')) {
+            game.gameTime = GAME.GAME_DURATION;
         }
 
         // V: 무기 선택 패널 토글 (P 모드 해제)
@@ -300,6 +319,9 @@ export class DebugMode {
             `M  : Magnet ${this.magnetMode ? 'ON' : 'OFF'}`,
             `A  : Auto LvUp ${this.autoLevelUp ? 'ON' : 'OFF'}`,
             'C  : Spawn Chest',
+            'B  : Gold +1000',
+            'X  : Instant Death',
+            'N  : Instant Victory',
             'V  : Weapon → MAX',
             'P  : Grant Passive',
         ];

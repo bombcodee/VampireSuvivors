@@ -4,7 +4,7 @@
  * - 왼쪽: 보유 무기 스탯 + 패시브 목록
  * - 오른쪽: 진화 조합표 (조건 충족 시 초록색 체크)
  */
-import { UI, WEAPONS, PASSIVES, EVOLUTIONS } from '../data/config.js';
+import { UI, WEAPONS, PASSIVES, EVOLUTIONS, UPGRADES } from '../data/config.js';
 
 export class PauseUI {
     /**
@@ -13,8 +13,9 @@ export class PauseUI {
      * @param {number} canvasW - 캔버스 너비
      * @param {number} canvasH - 캔버스 높이
      * @param {Object} player - Player 인스턴스
+     * @param {Object} [upgradeSystem] - UpgradeSystem 인스턴스 (영구 업그레이드 표시용)
      */
-    render(ctx, canvasW, canvasH, player) {
+    render(ctx, canvasW, canvasH, player, upgradeSystem) {
         // 어두운 오버레이
         ctx.fillStyle = UI.OVERLAY_COLOR;
         ctx.fillRect(0, 0, canvasW, canvasH);
@@ -29,50 +30,61 @@ export class PauseUI {
         ctx.fillStyle = '#78909c';
         ctx.fillText('Press ESC to resume', canvasW / 2, 75);
 
-        // 왼쪽: 무기 스탯 + 패시브
-        this._renderWeaponStats(ctx, player, canvasW);
+        // 왼쪽: 무기 스탯 + 패시브 + 영구 업그레이드
+        this._renderWeaponStats(ctx, player, canvasW, upgradeSystem);
 
         // 오른쪽: 진화 조합표
         this._renderEvolutionGuide(ctx, player, canvasW, canvasH);
     }
 
     /**
-     * 무기 스탯 + 패시브 목록 (왼쪽)
+     * 무기 스탯 + 패시브 + 영구 업그레이드 목록 (왼쪽)
      */
-    _renderWeaponStats(ctx, player, canvasW) {
+    _renderWeaponStats(ctx, player, canvasW, upgradeSystem) {
         const x = 30;
         let y = 110;
-        const lineHeight = 18;
+        const lineHeight = 16;
         const halfW = canvasW / 2 - 20;
+
+        // 패널 높이 동적 계산
+        const weaponLines = Math.max(1, player.weapons.length) * 2; // 이름 + 스탯
+        const passiveCount = Object.values(PASSIVES).filter(
+            (_, i) => (player.passiveLevels[Object.keys(PASSIVES)[i]] || 0) > 0
+        ).length;
+        const passiveLines = Math.max(1, passiveCount);
+        const upgradeCount = upgradeSystem
+            ? Object.keys(UPGRADES).filter(id => upgradeSystem.getLevel(id) > 0).length
+            : 0;
+        const upgradeLines = upgradeCount > 0 ? upgradeCount + 2 : 0; // +2: 타이틀 + 간격
+        const totalLines = 2 + weaponLines + 2 + passiveLines + upgradeLines;
+        const panelHeight = totalLines * lineHeight + 40;
 
         // 패널 배경
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillRect(x - 10, y - 20, halfW, 340);
+        ctx.fillRect(x - 10, y - 20, halfW, panelHeight);
 
         // 섹션 타이틀: 무기
         ctx.fillStyle = '#ffd700';
-        ctx.font = `bold 14px ${UI.FONT_FAMILY}`;
+        ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
         ctx.textAlign = 'left';
         ctx.fillText('[ Weapons ]', x, y);
-        y += lineHeight + 4;
+        y += lineHeight + 2;
 
         // 무기 목록
         for (const weapon of player.weapons) {
-            // 무기 이름 + 레벨
             if (weapon.isEvolved) {
                 ctx.fillStyle = '#ffd700';
-                ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
+                ctx.font = `bold 12px ${UI.FONT_FAMILY}`;
                 ctx.fillText(`★ ${weapon.name}`, x, y);
             } else {
                 ctx.fillStyle = '#ffffff';
-                ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
+                ctx.font = `bold 12px ${UI.FONT_FAMILY}`;
                 ctx.fillText(`${weapon.name} Lv.${weapon.level}`, x, y);
             }
             y += lineHeight;
 
-            // 스탯 (DMG, CD + 특수 스탯 1~2개)
             ctx.fillStyle = '#b0bec5';
-            ctx.font = `12px ${UI.FONT_FAMILY}`;
+            ctx.font = `11px ${UI.FONT_FAMILY}`;
             const stats = this._getWeaponStatsText(weapon);
             ctx.fillText(stats, x + 10, y);
             y += lineHeight + 2;
@@ -80,19 +92,18 @@ export class PauseUI {
 
         if (player.weapons.length === 0) {
             ctx.fillStyle = '#555555';
-            ctx.font = `12px ${UI.FONT_FAMILY}`;
+            ctx.font = `11px ${UI.FONT_FAMILY}`;
             ctx.fillText('(무기 없음)', x + 10, y);
             y += lineHeight;
         }
 
         // 섹션 타이틀: 패시브
-        y += 8;
+        y += 6;
         ctx.fillStyle = '#81d4fa';
-        ctx.font = `bold 14px ${UI.FONT_FAMILY}`;
+        ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
         ctx.fillText('[ Passives ]', x, y);
-        y += lineHeight + 4;
+        y += lineHeight + 2;
 
-        // 패시브 목록
         let hasPassive = false;
         for (const [passiveId, config] of Object.entries(PASSIVES)) {
             const level = player.passiveLevels[passiveId] || 0;
@@ -100,10 +111,9 @@ export class PauseUI {
             hasPassive = true;
 
             ctx.fillStyle = config.COLOR || '#ffffff';
-            ctx.font = `13px ${UI.FONT_FAMILY}`;
+            ctx.font = `12px ${UI.FONT_FAMILY}`;
             ctx.fillText(`${config.NAME} Lv.${level}`, x + 10, y);
 
-            // 효과 설명
             ctx.fillStyle = '#78909c';
             ctx.font = `11px ${UI.FONT_FAMILY}`;
             const effectText = this._getPassiveEffectText(config, level);
@@ -113,8 +123,33 @@ export class PauseUI {
 
         if (!hasPassive) {
             ctx.fillStyle = '#555555';
-            ctx.font = `12px ${UI.FONT_FAMILY}`;
+            ctx.font = `11px ${UI.FONT_FAMILY}`;
             ctx.fillText('(패시브 없음)', x + 10, y);
+            y += lineHeight;
+        }
+
+        // 섹션: 영구 업그레이드 (보유 중인 것만)
+        if (upgradeSystem && upgradeCount > 0) {
+            y += 6;
+            ctx.fillStyle = '#ffd54f';
+            ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
+            ctx.fillText('[ Upgrades ]', x, y);
+            y += lineHeight + 2;
+
+            for (const [id, cfg] of Object.entries(UPGRADES)) {
+                const level = upgradeSystem.getLevel(id);
+                if (level <= 0) continue;
+
+                ctx.fillStyle = cfg.COLOR || '#ffffff';
+                ctx.font = `12px ${UI.FONT_FAMILY}`;
+                ctx.fillText(`${cfg.NAME} Lv.${level}`, x + 10, y);
+
+                ctx.fillStyle = '#78909c';
+                ctx.font = `11px ${UI.FONT_FAMILY}`;
+                const effectText = this._getUpgradeEffectText(cfg, level);
+                ctx.fillText(effectText, x + 130, y);
+                y += lineHeight;
+            }
         }
     }
 
@@ -125,18 +160,21 @@ export class PauseUI {
         const halfW = canvasW / 2;
         const x = halfW + 20;
         let y = 110;
-        const lineHeight = 18;
+        const lineHeight = 15;
+        const entryGap = 4;
 
-        // 패널 배경
+        // 패널 배경 (진화 8종에 맞춰 높이 계산)
+        const evoCount = Object.keys(EVOLUTIONS).length;
+        const panelHeight = 28 + evoCount * (lineHeight * 3 + entryGap) + 10;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillRect(x - 10, y - 20, halfW - 30, 340);
+        ctx.fillRect(x - 10, y - 20, halfW - 30, panelHeight);
 
         // 섹션 타이틀
         ctx.fillStyle = '#ffd700';
         ctx.font = `bold 14px ${UI.FONT_FAMILY}`;
         ctx.textAlign = 'left';
         ctx.fillText('[ Evolution Guide ]', x, y);
-        y += lineHeight + 8;
+        y += lineHeight + 6;
 
         // 각 진화 조합 표시
         for (const [evoId, evoCfg] of Object.entries(EVOLUTIONS)) {
@@ -151,32 +189,32 @@ export class PauseUI {
             const passiveReady = (player.passiveLevels[evoCfg.REQUIRED_PASSIVE] || 0) > 0;
             const alreadyEvolved = !!player.getWeapon(evoId);
 
-            // 진화 무기 이름 (이미 진화했으면 금색)
+            // 진화 무기 이름
             if (alreadyEvolved) {
                 ctx.fillStyle = '#ffd700';
-                ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
+                ctx.font = `bold 12px ${UI.FONT_FAMILY}`;
                 ctx.fillText(`★ ${evoCfg.NAME}  (완료!)`, x, y);
             } else {
                 ctx.fillStyle = evoCfg.COLOR || '#ffffff';
-                ctx.font = `bold 13px ${UI.FONT_FAMILY}`;
+                ctx.font = `bold 12px ${UI.FONT_FAMILY}`;
                 ctx.fillText(evoCfg.NAME, x, y);
             }
             y += lineHeight;
 
-            // 기본 무기 조건
-            const weaponCheck = weaponReady ? '✓' : '✗';
-            const weaponColor = weaponReady ? '#69f0ae' : '#ef9a9a';
+            // 기본 무기 조건 (진화 완료 시에도 현재 상태 그대로 표시)
+            const weaponCheck = (alreadyEvolved || weaponReady) ? '✓' : '✗';
+            const weaponColor = (alreadyEvolved || weaponReady) ? '#69f0ae' : '#ef9a9a';
             ctx.fillStyle = weaponColor;
-            ctx.font = `12px ${UI.FONT_FAMILY}`;
+            ctx.font = `11px ${UI.FONT_FAMILY}`;
             ctx.fillText(`${weaponCheck} ${baseWeaponCfg.NAME} Lv.MAX`, x + 10, y);
             y += lineHeight;
 
             // 패시브 조건
-            const passiveCheck = passiveReady ? '✓' : '✗';
-            const passiveColor = passiveReady ? '#69f0ae' : '#ef9a9a';
+            const passiveCheck = (alreadyEvolved || passiveReady) ? '✓' : '✗';
+            const passiveColor = (alreadyEvolved || passiveReady) ? '#69f0ae' : '#ef9a9a';
             ctx.fillStyle = passiveColor;
             ctx.fillText(`${passiveCheck} ${passiveCfg.NAME}`, x + 10, y);
-            y += lineHeight + 8;
+            y += lineHeight + entryGap;
         }
     }
 
@@ -212,6 +250,22 @@ export class PauseUI {
         }
 
         return parts.join('  ');
+    }
+
+    /**
+     * 영구 업그레이드 효과를 텍스트로 반환한다
+     */
+    _getUpgradeEffectText(cfg, level) {
+        let totalBonus = 0;
+        for (let i = 0; i < level; i++) {
+            totalBonus += cfg.VALUES[i];
+        }
+
+        if (cfg.TYPE === 'multiply') {
+            return `+${Math.round(totalBonus * 100)}%`;
+        } else {
+            return `+${totalBonus}`;
+        }
     }
 
     /**

@@ -28,8 +28,9 @@ export class MenuUI {
      * @param {CanvasRenderingContext2D} ctx
      * @param {number} canvasWidth
      * @param {number} canvasHeight
+     * @param {number} gold - 보유 골드 (0이면 미표시)
      */
-    render(ctx, canvasWidth, canvasHeight) {
+    render(ctx, canvasWidth, canvasHeight, gold = 0) {
         // 배경
         ctx.fillStyle = '#1a1a2e';
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -54,14 +55,28 @@ export class MenuUI {
         // 조작 안내
         ctx.fillStyle = '#b0bec5';
         ctx.font = `14px ${UI.FONT_FAMILY}`;
-        ctx.fillText('WASD / Arrow Keys to move', centerX, centerY + 70);
-        ctx.fillText('Weapons fire automatically!', centerX, centerY + 92);
+        ctx.fillText('WASD / Arrow Keys to move', centerX, centerY + 60);
+        ctx.fillText('Weapons fire automatically!', centerX, centerY + 80);
 
         // "Press Enter to Start" (깜빡임)
         if (this._showText) {
             ctx.fillStyle = '#ffffff';
             ctx.font = `bold 20px ${UI.FONT_FAMILY}`;
-            ctx.fillText('Press ENTER or SPACE to Start', centerX, centerY + 140);
+            ctx.fillText('Press ENTER or SPACE to Start', centerX, centerY + 120);
+        }
+
+        // 상점 안내
+        ctx.fillStyle = '#ffd54f';
+        ctx.font = `bold 16px ${UI.FONT_FAMILY}`;
+        ctx.fillText('Press S for Upgrade Shop', centerX, centerY + 155);
+
+        // 보유 골드 (0 이상일 때만)
+        if (gold > 0) {
+            ctx.fillStyle = '#ffd54f';
+            ctx.font = `bold 16px ${UI.FONT_FAMILY}`;
+            ctx.textAlign = 'right';
+            ctx.fillText(`Gold: ${gold}`, canvasWidth - 20, 30);
+            ctx.textAlign = 'center';
         }
 
         // 하단 크레딧

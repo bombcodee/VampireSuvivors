@@ -2,7 +2,7 @@
  * 게임 매니저 (Game) - 싱글톤
  * - 게임 전체를 관리하는 "사령탑"
  * - 모든 시스템을 소유하고 매 프레임 업데이트/렌더를 지휘한다
- * - 게임 상태(MENU, CHARSELECT, PLAY, LEVELUP, PAUSE, GAMEOVER, VICTORY) 관리
+ * - 게임 상태(MENU, CHARSELECT, SHOP, PLAY, LEVELUP, PAUSE, GAMEOVER, VICTORY) 관리
  */
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GAME, POOL_SIZES, CHARACTERS } from '../data/config.js';
 import { Input } from './Input.js';
@@ -26,6 +26,9 @@ import { GameOverUI } from '../ui/GameOverUI.js';
 import { VictoryUI } from '../ui/VictoryUI.js';
 import { CharSelectUI } from '../ui/CharSelectUI.js';
 import { PauseUI } from '../ui/PauseUI.js';
+import { UpgradeShopUI } from '../ui/UpgradeShopUI.js';
+import { UpgradeSystem } from '../systems/UpgradeSystem.js';
+import { Storage } from '../utils/Storage.js';
 import { DebugMode } from './DebugMode.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 
@@ -36,6 +39,7 @@ import { ErrorGuard } from '../utils/ErrorGuard.js';
 const STATE = {
     MENU: 'MENU',
     CHARSELECT: 'CHARSELECT',
+    SHOP: 'SHOP',
     PLAY: 'PLAY',
     LEVELUP: 'LEVELUP',
     EVOLUTION: 'EVOLUTION',
@@ -79,6 +83,11 @@ export class Game {
         this.expSystem = new ExpSystem();
         this.collisionSystem = new CollisionSystem();
         this.evolutionSystem = new EvolutionSystem();
+        this.upgradeSystem = new UpgradeSystem();
+
+        // ===== 골드 =====
+        this.totalGold = Storage.load('gold', 0);  // 누적 보유 골드
+        this.goldEarned = 0;                        // 현재 런 획득 골드
 
         // ===== UI =====
         this.hud = new HUD();
@@ -89,6 +98,7 @@ export class Game {
         this.gameOverUI = new GameOverUI();
         this.victoryUI = new VictoryUI();
         this.pauseUI = new PauseUI();
+        this.upgradeShopUI = new UpgradeShopUI();
 
         // ===== 레벨업 선택지 =====
         this._currentChoices = [];
@@ -150,6 +160,9 @@ export class Game {
             case STATE.CHARSELECT:
                 this._updateCharSelect();
                 break;
+            case STATE.SHOP:
+                this._updateShop(dt);
+                break;
             case STATE.PLAY:
                 this._updatePlay(dt);
                 break;
@@ -180,11 +193,15 @@ export class Game {
 
         switch (this.state) {
             case STATE.MENU:
-                this.menuUI.render(this.ctx, this.canvas.width, this.canvas.height);
+                this.menuUI.render(this.ctx, this.canvas.width, this.canvas.height, this.totalGold);
                 break;
 
             case STATE.CHARSELECT:
                 this.charSelectUI.render(this.ctx, this.canvas.width, this.canvas.height);
+                break;
+
+            case STATE.SHOP:
+                this.upgradeShopUI.render(this.ctx, this.canvas.width, this.canvas.height);
                 break;
 
             case STATE.PLAY:
@@ -216,6 +233,7 @@ export class Game {
                     level: this.player.level,
                     killCount: this.player.killCount,
                     totalExp: this.player.totalExp,
+                    goldEarned: this.goldEarned,
                 });
                 break;
 
@@ -226,6 +244,7 @@ export class Game {
                     level: this.player.level,
                     killCount: this.player.killCount,
                     totalExp: this.player.totalExp,
+                    goldEarned: this.goldEarned,
                 });
                 break;
         }
@@ -239,6 +258,29 @@ export class Game {
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
             this.charSelectUI.selectedIndex = 0; // 선택 초기화
             this.state = STATE.CHARSELECT;
+        }
+
+        // S키 → 상점
+        if (this.input.isKeyPressed('KeyS')) {
+            this.upgradeShopUI.selectedIndex = 0;
+            this.upgradeShopUI.refresh(this.upgradeSystem.getAll(), this.totalGold);
+            this.state = STATE.SHOP;
+        }
+    }
+
+    _updateShop(dt) {
+        const result = this.upgradeShopUI.update(this.input, dt);
+
+        if (result.action === 'close') {
+            this.state = STATE.MENU;
+        } else if (result.action === 'purchase') {
+            const { success, remainingGold } = this.upgradeSystem.purchase(result.upgradeId, this.totalGold);
+            if (success) {
+                this.totalGold = remainingGold;
+                Storage.save('gold', this.totalGold);
+                // UI 새로고침
+                this.upgradeShopUI.refresh(this.upgradeSystem.getAll(), this.totalGold);
+            }
         }
     }
 
@@ -369,6 +411,7 @@ export class Game {
         this.gameOverUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
+            this._saveGold();
             this.state = STATE.MENU;
         }
     }
@@ -377,7 +420,19 @@ export class Game {
         this.victoryUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
+            this._saveGold();
             this.state = STATE.MENU;
+        }
+    }
+
+    /**
+     * 런에서 획득한 골드를 누적 저장한다
+     */
+    _saveGold() {
+        if (this.goldEarned > 0) {
+            this.totalGold += this.goldEarned;
+            Storage.save('gold', this.totalGold);
+            this.goldEarned = 0;
         }
     }
 
@@ -461,7 +516,7 @@ export class Game {
      * 일시정지 오버레이 (PauseUI에 위임)
      */
     _renderPauseOverlay() {
-        this.pauseUI.render(this.ctx, this.canvas.width, this.canvas.height, this.player);
+        this.pauseUI.render(this.ctx, this.canvas.width, this.canvas.height, this.player, this.upgradeSystem);
     }
 
     // ===== 게임 이벤트 =====
@@ -475,6 +530,12 @@ export class Game {
 
         // 캐릭터 보너스 적용
         this.player.applyCharacter(characterId);
+
+        // 영구 업그레이드 보너스 적용 (캐릭터 보너스 이후)
+        this.upgradeSystem.applyToPlayer(this.player);
+
+        // 런 골드 초기화
+        this.goldEarned = 0;
 
         // 캐릭터의 시작 무기 지급
         const startWeaponId = CHARACTERS[characterId].START_WEAPON;

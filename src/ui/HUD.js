@@ -34,6 +34,9 @@ export class HUD {
         // 킬 카운트 (우상단)
         this._drawKillCount(ctx, player, canvasW);
 
+        // 골드 (우상단, 킬 아래)
+        this._drawGold(ctx, game.goldEarned, canvasW);
+
         // 보유 무기 목록 (좌하단)
         this._drawWeaponList(ctx, player, game.canvas.height);
     }
@@ -133,6 +136,19 @@ export class HUD {
         ctx.font = `14px ${UI.FONT_FAMILY}`;
         ctx.textAlign = 'right';
         ctx.fillText(`Kills: ${player.killCount}`, x, y);
+    }
+
+    /**
+     * 골드를 그린다 (우상단, 킬 수 아래)
+     */
+    _drawGold(ctx, goldEarned, canvasWidth) {
+        const x = canvasWidth - this._padding;
+        const y = UI.EXP_BAR_HEIGHT + 42;
+
+        ctx.fillStyle = '#ffd54f';
+        ctx.font = `14px ${UI.FONT_FAMILY}`;
+        ctx.textAlign = 'right';
+        ctx.fillText(`Gold: ${goldEarned}`, x, y);
     }
 
     /**

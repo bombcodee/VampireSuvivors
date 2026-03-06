@@ -68,6 +68,11 @@ export class GameOverUI {
         // 총 경험치
         ctx.fillText(`Total EXP: ${stats.totalExp}`, centerX, statY + lineHeight * 3);
 
+        // 획득 골드
+        ctx.fillStyle = '#ffd54f';
+        ctx.fillText(`Gold Earned: +${stats.goldEarned || 0}`, centerX, statY + lineHeight * 4);
+        ctx.fillStyle = '#ffffff';
+
         // "Press Enter" (깜빡임)
         if (this._showText) {
             ctx.fillStyle = '#ffd54f';

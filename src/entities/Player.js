@@ -32,6 +32,7 @@ export class Player {
         this.damageMultiplier = 1.0;        // 공격력 배율 (캐릭터 보너스)
         this.expMultiplier = 1.0;           // 경험치 배율 (캐릭터 보너스)
         this.projSpeedMultiplier = 1.0;     // 투사체 속도 배율 (캐릭터 보너스)
+        this.goldMultiplier = 1.0;          // 골드 획득 배율 (영구 업그레이드)
 
         // ===== 캐릭터 =====
         this.characterId = 'ANTONIO';       // 선택된 캐릭터 ID
@@ -250,6 +251,7 @@ export class Player {
         this.damageMultiplier = 1.0;
         this.expMultiplier = 1.0;
         this.projSpeedMultiplier = 1.0;
+        this.goldMultiplier = 1.0;
         this.weapons = [];
         this.level = 1;
         this.exp = 0;

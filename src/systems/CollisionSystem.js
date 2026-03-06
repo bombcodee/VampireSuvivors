@@ -6,7 +6,7 @@
  * - 원형 충돌 판정(Circle Collision)을 사용한다
  */
 import { distance } from '../utils/MathUtils.js';
-import { CHEST } from '../data/config.js';
+import { CHEST, GOLD } from '../data/config.js';
 
 export class CollisionSystem {
     /**
@@ -163,6 +163,9 @@ export class CollisionSystem {
         // 킬 카운트 증가
         game.player.killCount++;
 
+        // 골드 획득
+        game.goldEarned += this._calcGoldValue(game, enemy);
+
         // 경험치 보석 드롭
         const gem = game.gems.get();
         gem.init(enemy.x, enemy.y, enemy.expValue);
@@ -175,6 +178,23 @@ export class CollisionSystem {
 
         // 적 비활성화
         enemy.active = false;
+    }
+
+    /**
+     * 적 처치 시 획득 골드를 계산한다
+     * - 기본 골드 × 시간 보너스 × 골드 배율
+     */
+    _calcGoldValue(game, enemy) {
+        const baseGold = GOLD[enemy.type] || 1;
+
+        // 시간 보너스: 5분마다 +20%, 최대 +120%
+        const timeBonusStacks = Math.floor(game.gameTime / GOLD.TIME_BONUS_INTERVAL);
+        const timeBonus = 1 + Math.min(timeBonusStacks * GOLD.TIME_BONUS_RATE, GOLD.TIME_BONUS_MAX);
+
+        // 골드 배율 (영구 업그레이드)
+        const goldMultiplier = game.player.goldMultiplier;
+
+        return Math.floor(baseGold * timeBonus * goldMultiplier);
     }
 
     /**
