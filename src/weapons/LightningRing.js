@@ -82,10 +82,7 @@ export class LightningRing {
 
             // 적 사망 처리
             if (isDead && game) {
-                game.player.killCount++;
-                const gem = game.gems.get();
-                gem.init(target.x, target.y, target.expValue);
-                target.active = false;
+                target.onDeath(game);
             }
         }
     }

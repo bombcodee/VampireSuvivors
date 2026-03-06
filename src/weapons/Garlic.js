@@ -102,12 +102,9 @@ export class Garlic {
                     text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#c8e6c9');
                 }
 
-                // 적 사망 처리 (보석 드롭 + 킬 카운트)
+                // 적 사망 처리
                 if (isDead && game) {
-                    game.player.killCount++;
-                    const gem = game.gems.get();
-                    gem.init(enemy.x, enemy.y, enemy.expValue);
-                    enemy.active = false;
+                    enemy.onDeath(game);
                 }
             }
         }

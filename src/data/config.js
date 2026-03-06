@@ -122,6 +122,7 @@ export const WEAPONS = {
         NAME: 'Magic Wand',
         DESCRIPTION: '가장 가까운 적에게 투사체를 발사한다',
         COLOR: '#ffab40',       // 주황색 투사체
+        SPREAD_ANGLE: 0.15,     // 투사체 분산 각도 (라디안)
         LEVELS: [
             { damage: 10, cooldown: 1.0, speed: 350, count: 1, size: 6 },
             { damage: 15, cooldown: 0.9, speed: 370, count: 1, size: 7 },
@@ -164,6 +165,8 @@ export const WEAPONS = {
         NAME: 'King Bible',
         DESCRIPTION: '플레이어 주변을 회전하며 적을 공격한다',
         COLOR: '#ce93d8',          // 보라색
+        HIT_COOLDOWN: 0.3,         // 같은 적 중복 히트 방지 시간
+        COLLISION_RADIUS: 10,      // 책 충돌 반지름
         LEVELS: [
             { damage: 8,  cooldown: 3.5, orbitRadius: 80,  count: 1, duration: 3.0, speed: 2.5 },
             { damage: 10, cooldown: 3.2, orbitRadius: 85,  count: 2, duration: 3.0, speed: 2.7 },
@@ -178,6 +181,7 @@ export const WEAPONS = {
         NAME: 'Fire Wand',
         DESCRIPTION: '적을 관통하는 불꽃을 발사한다',
         COLOR: '#ff7043',          // 주황빨강
+        SPREAD_ANGLE: 0.2,         // 투사체 분산 각도 (라디안)
         LEVELS: [
             { damage: 20, cooldown: 1.5, speed: 300, count: 1, size: 8,  pierce: 2 },
             { damage: 25, cooldown: 1.4, speed: 320, count: 1, size: 9,  pierce: 2 },
@@ -192,6 +196,7 @@ export const WEAPONS = {
         NAME: 'Knife',
         DESCRIPTION: '빠른 나이프를 여러 개 연속 발사한다',
         COLOR: '#b0bec5',          // 은색
+        SPREAD_ANGLE: 0.12,        // 투사체 분산 각도 (라디안)
         LEVELS: [
             { damage: 6,  cooldown: 0.5, speed: 500, count: 1, size: 4 },
             { damage: 7,  cooldown: 0.45, speed: 520, count: 1, size: 4 },
@@ -330,6 +335,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'MAGIC_WAND',
         REQUIRED_PASSIVE: 'ARMOR',
         COLOR: '#e1f5fe',
+        SPREAD_ANGLE: 0.15,
         STATS: { damage: 30, cooldown: 0.5, speed: 500, count: 4, size: 10, pierce: 2 },
     },
     // Garlic (Lv5) + HP Boost = Soul Eater
@@ -375,6 +381,8 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'KING_BIBLE',
         REQUIRED_PASSIVE: 'ARMOR',
         COLOR: '#ea80fc',
+        HIT_COOLDOWN: 0.25,
+        COLLISION_RADIUS: 14,
         STATS: { damage: 15, orbitRadius: 120, count: 6, speed: 3.5 },
     },
     // Fire Wand (Lv5) + HP Boost = Hellfire
@@ -384,6 +392,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'FIRE_WAND',
         REQUIRED_PASSIVE: 'MAX_HP_UP',
         COLOR: '#ff3d00',
+        SPREAD_ANGLE: 0.25,
         STATS: { damage: 40, cooldown: 0.8, speed: 350, count: 2, size: 16, pierce: 6 },
     },
     // Lightning Ring (Lv5) + Speed Boost = Thunder Loop

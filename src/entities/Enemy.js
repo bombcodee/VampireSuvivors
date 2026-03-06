@@ -5,6 +5,7 @@
  * - 오브젝트 풀에서 재사용된다
  */
 import { normalize } from '../utils/MathUtils.js';
+import { GOLD } from '../data/config.js';
 
 export class Enemy {
     constructor() {
@@ -165,5 +166,49 @@ export class Enemy {
         }
 
         return this.hp <= 0;
+    }
+
+    /**
+     * 적 사망 시 일괄 처리 (킬 카운트, 골드, 보석, 상자)
+     * - 모든 무기/시스템에서 적이 죽으면 이 메서드만 호출한다
+     * @param {Object} game - Game 인스턴스
+     */
+    onDeath(game) {
+        if (!this.active) return;
+
+        // 킬 카운트 증가
+        game.player.killCount++;
+
+        // 골드 획득
+        game.goldEarned += this._calcGoldValue(game);
+
+        // 경험치 보석 드롭
+        const gem = game.gems.get();
+        gem.init(this.x, this.y, this.expValue);
+
+        // 보스 사망 시 상자 드롭
+        if (this.type === 'BOSS') {
+            const chest = game.chests.get();
+            chest.init(this.x, this.y);
+        }
+
+        // 적 비활성화
+        this.active = false;
+    }
+
+    /**
+     * 적 처치 시 획득 골드를 계산한다
+     * @param {Object} game - Game 인스턴스
+     * @returns {number} 획득 골드
+     */
+    _calcGoldValue(game) {
+        const baseGold = GOLD[this.type] || 1;
+
+        // 시간 보너스: 5분마다 +20%, 최대 +120%
+        const timeBonusStacks = Math.floor(game.gameTime / GOLD.TIME_BONUS_INTERVAL);
+        const timeBonus = 1 + Math.min(timeBonusStacks * GOLD.TIME_BONUS_RATE, GOLD.TIME_BONUS_MAX);
+
+        // 골드 배율 (영구 업그레이드)
+        return Math.floor(baseGold * timeBonus * game.player.goldMultiplier);
     }
 }

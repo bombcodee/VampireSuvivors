@@ -73,12 +73,9 @@ export class SoulEater {
                 text.init(enemy.x, enemy.y - enemy.radius, finalDamage, CFG.COLOR);
             }
 
-            // 적 사망 시 흡혈 + 킬 카운트
+            // 적 사망 처리 + 흡혈
             if (isDead && game) {
-                game.player.killCount++;
-                const gem = game.gems.get();
-                gem.init(enemy.x, enemy.y, enemy.expValue);
-                enemy.active = false;
+                enemy.onDeath(game);
                 totalHeal += this.lifesteal;
             }
         }

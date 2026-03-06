@@ -509,16 +509,7 @@ export class DebugMode {
         const enemies = game.enemies.getActive();
         for (const enemy of [...enemies]) {
             if (!enemy.active) continue;
-
-            // 킬 카운트 증가
-            game.player.killCount++;
-
-            // 보석 드롭
-            const gem = game.gems.get();
-            gem.init(enemy.x, enemy.y, enemy.expValue);
-
-            // 적 비활성화
-            enemy.active = false;
+            enemy.onDeath(game);
         }
         // 비활성 적 풀에 반환
         game.enemies.releaseWhere(e => !e.active);

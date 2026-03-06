@@ -93,10 +93,7 @@ export class HolyWater {
 
                 // 적 사망 처리
                 if (isDead && game) {
-                    game.player.killCount++;
-                    const gem = game.gems.get();
-                    gem.init(enemy.x, enemy.y, enemy.expValue);
-                    enemy.active = false;
+                    enemy.onDeath(game);
                 }
             }
         }

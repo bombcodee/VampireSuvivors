@@ -72,10 +72,7 @@ export class BloodyTear {
             }
 
             if (isDead && game) {
-                game.player.killCount++;
-                const gem = game.gems.get();
-                gem.init(enemy.x, enemy.y, enemy.expValue);
-                enemy.active = false;
+                enemy.onDeath(game);
                 totalHeal += this.lifesteal;
             }
         }

@@ -101,7 +101,7 @@ export class MagicWand {
             let finalDx = dir.x;
             let finalDy = dir.y;
             if (this.count > 1 && i > 0) {
-                const spreadAngle = (i - (this.count - 1) / 2) * 0.15;
+                const spreadAngle = (i - (this.count - 1) / 2) * WEAPONS.MAGIC_WAND.SPREAD_ANGLE;
                 const cos = Math.cos(spreadAngle);
                 const sin = Math.sin(spreadAngle);
                 finalDx = dir.x * cos - dir.y * sin;

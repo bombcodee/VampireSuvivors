@@ -74,7 +74,7 @@ export class KingBible {
     }
 
     _checkCollisions(playerX, playerY, enemies, game) {
-        const bookRadius = 10; // 각 성경책의 충돌 반경
+        const bookRadius = WEAPONS.KING_BIBLE.COLLISION_RADIUS;
         const dmgMul = game ? game.player.damageMultiplier : 1;
         const finalDamage = Math.floor(this.damage * dmgMul);
 
@@ -93,7 +93,7 @@ export class KingBible {
 
                 const dist = distance(bookX, bookY, enemy.x, enemy.y);
                 if (dist < bookRadius + enemy.radius) {
-                    this._hitCooldowns.set(hitKey, 0.3);
+                    this._hitCooldowns.set(hitKey, WEAPONS.KING_BIBLE.HIT_COOLDOWN);
 
                     const isDead = enemy.takeDamage(finalDamage, bookX, bookY);
 
@@ -103,10 +103,7 @@ export class KingBible {
                     }
 
                     if (isDead && game) {
-                        game.player.killCount++;
-                        const gem = game.gems.get();
-                        gem.init(enemy.x, enemy.y, enemy.expValue);
-                        enemy.active = false;
+                        enemy.onDeath(game);
                     }
                 }
             }
@@ -116,7 +113,7 @@ export class KingBible {
     render(ctx, camera, playerX, playerY) {
         if (!this._active) return;
 
-        const bookRadius = 10;
+        const bookRadius = WEAPONS.KING_BIBLE.COLLISION_RADIUS;
 
         for (let i = 0; i < this.count; i++) {
             const angleOffset = (Math.PI * 2 / this.count) * i;
