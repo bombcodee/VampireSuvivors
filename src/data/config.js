@@ -475,6 +475,14 @@ export const UPGRADES = {
     },
 };
 
+// ===== 사운드 설정 =====
+export const SOUNDS = {
+    MASTER_VOLUME: 0.7,         // 마스터 볼륨 (0.0 ~ 1.0)
+    SFX_VOLUME: 0.9,            // 효과음 볼륨
+    BGM_VOLUME: 0.3,            // BGM 볼륨 (향후 사용)
+    DEBOUNCE_TIME: 0.05,        // 같은 소리 최소 간격 (초)
+};
+
 // ===== 게임 전체 설정 =====
 export const GAME = {
     GAME_DURATION: 1800,        // 게임 제한 시간 (30분 = 1800초)

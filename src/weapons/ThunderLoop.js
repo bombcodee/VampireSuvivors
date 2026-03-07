@@ -107,6 +107,8 @@ export class ThunderLoop {
 
             if (isDead && game) {
                 target.onDeath(game);
+            } else if (game) {
+                game.sound.play('hit');
             }
         }
     }

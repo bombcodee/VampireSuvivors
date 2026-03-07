@@ -105,6 +105,8 @@ export class Garlic {
                 // 적 사망 처리
                 if (isDead && game) {
                     enemy.onDeath(game);
+                } else if (game) {
+                    game.sound.play('hit');
                 }
             }
         }

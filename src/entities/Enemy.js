@@ -176,6 +176,8 @@ export class Enemy {
     onDeath(game) {
         if (!this.active) return;
 
+        game.sound.play('kill');
+
         // 킬 카운트 증가
         game.player.killCount++;
 

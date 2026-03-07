@@ -30,6 +30,7 @@ import { UpgradeShopUI } from '../ui/UpgradeShopUI.js';
 import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { Storage } from '../utils/Storage.js';
 import { DebugMode } from './DebugMode.js';
+import { SoundManager } from './SoundManager.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 
 /**
@@ -103,11 +104,31 @@ export class Game {
         // ===== 레벨업 선택지 =====
         this._currentChoices = [];
 
+        // ===== 사운드 =====
+        this.sound = new SoundManager();
+
         // ===== 디버그 모드 =====
         this.debug = new DebugMode();
 
         // 게임 루프를 미리 바인딩 (매 프레임 새 함수 생성 방지)
         this._gameLoop = this._gameLoop.bind(this);
+
+        // AudioContext resume (브라우저 정책: 첫 유저 입력 필요)
+        this._setupAudioResume();
+    }
+
+    /**
+     * AudioContext resume을 위한 이벤트 리스너 등록
+     * 브라우저 정책: 유저가 클릭/키 입력 전에는 소리 재생 불가
+     */
+    _setupAudioResume() {
+        const resume = () => {
+            this.sound.resume();
+            this.canvas.removeEventListener('click', resume);
+            document.removeEventListener('keydown', resume);
+        };
+        this.canvas.addEventListener('click', resume);
+        document.addEventListener('keydown', resume);
     }
 
     /**
@@ -256,12 +277,14 @@ export class Game {
         this.menuUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
+            this.sound.play('ui_click');
             this.charSelectUI.selectedIndex = 0; // 선택 초기화
             this.state = STATE.CHARSELECT;
         }
 
         // S키 → 상점
         if (this.input.isKeyPressed('KeyS')) {
+            this.sound.play('ui_click');
             this.upgradeShopUI.selectedIndex = 0;
             this.upgradeShopUI.refresh(this.upgradeSystem.getAll(), this.totalGold);
             this.state = STATE.SHOP;
@@ -303,6 +326,7 @@ export class Game {
 
         // 게임 클리어 체크 (제한 시간 초과)
         if (this.gameTime >= GAME.GAME_DURATION) {
+            this.sound.play('evolve');
             this.state = STATE.VICTORY;
             return;
         }
@@ -323,7 +347,7 @@ export class Game {
         );
 
         // 적 스폰
-        this.enemySpawner.update(dt, this.player, this.enemies, this.gameTime);
+        this.enemySpawner.update(dt, this.player, this.enemies, this.gameTime, this);
 
         // 적 업데이트 (이동) — 1마리 에러 시 해당 적만 비활성화
         ErrorGuard.safeLoopUpdate(this.enemies.getActive(), (enemy) => {
@@ -368,6 +392,8 @@ export class Game {
         );
 
         if (selectedIndex >= 0 && selectedIndex < this._currentChoices.length) {
+            this.sound.play('ui_click');
+
             // 선택 적용
             this.expSystem.applyChoice(this.player, this._currentChoices[selectedIndex]);
 
@@ -388,9 +414,11 @@ export class Game {
 
         if (selectedIndex >= 0) {
             if (this.evolutionUI.isFallback) {
+                this.sound.play('ui_click');
                 // 폴백 보상 적용
                 this.evolutionSystem.applyFallbackReward(this.player);
             } else {
+                this.sound.play('evolve');
                 // 진화 실행
                 const evo = this.evolutionUI.evolutions[selectedIndex];
                 if (evo) {
@@ -411,6 +439,7 @@ export class Game {
         this.gameOverUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
+            this.sound.play('ui_click');
             this._saveGold();
             this.state = STATE.MENU;
         }
@@ -420,6 +449,7 @@ export class Game {
         this.victoryUI.update(dt);
 
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
+            this.sound.play('ui_click');
             this._saveGold();
             this.state = STATE.MENU;
         }
@@ -565,6 +595,8 @@ export class Game {
      * 레벨업 시 호출된다 (CollisionSystem에서 호출)
      */
     onLevelUp() {
+        this.sound.play('levelup');
+
         // 선택지 생성
         this._currentChoices = this.expSystem.generateChoices(this.player);
 
@@ -586,6 +618,7 @@ export class Game {
      * - 진화 가능 무기 체크 → EVOLUTION 상태 전환
      */
     onChestPickup() {
+        this.sound.play('chest');
         const eligible = this.evolutionSystem.getEligibleEvolutions(this.player);
         this.evolutionUI.setEvolutions(eligible);
         this.state = STATE.EVOLUTION;

@@ -77,6 +77,8 @@ export class SoulEater {
             if (isDead && game) {
                 enemy.onDeath(game);
                 totalHeal += this.lifesteal;
+            } else if (game) {
+                game.sound.play('hit');
             }
         }
 

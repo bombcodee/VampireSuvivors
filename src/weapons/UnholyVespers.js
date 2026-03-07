@@ -78,6 +78,8 @@ export class UnholyVespers {
 
                     if (isDead && game) {
                         enemy.onDeath(game);
+                    } else if (game) {
+                        game.sound.play('hit');
                     }
                 }
             }

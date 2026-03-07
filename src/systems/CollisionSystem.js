@@ -47,6 +47,8 @@ export class CollisionSystem {
                     // 적 사망 처리
                     if (isDead) {
                         enemy.onDeath(game);
+                    } else {
+                        game.sound.play('hit');
                     }
 
                     // 투사체 관통 체크
@@ -80,11 +82,13 @@ export class CollisionSystem {
 
             const dist = distance(player.x, player.y, enemy.x, enemy.y);
             if (dist < player.radius + enemy.radius) {
-                // 디버그 무적 모드면 데미지 스킵
+                // 무적 또는 디버그 무적이면 스킵 (소리/흔들림 포함)
+                if (player.isInvincible) continue;
                 if (game.debug && game.debug.godMode) continue;
 
                 // 플레이어에게 데미지
                 const isDead = player.takeDamage(enemy.damage);
+                game.sound.play('hit');
 
                 if (isDead) {
                     // 게임 오버!
@@ -117,6 +121,7 @@ export class CollisionSystem {
             if (dist < player.radius + gem.radius) {
                 // 경험치 획득
                 const leveledUp = player.addExp(gem.value);
+                game.sound.play('pickup');
 
                 // 보석 비활성화 (풀에 반환)
                 gem.active = false;

@@ -111,6 +111,11 @@ export class DebugMode {
             game.gameTime = GAME.GAME_DURATION;
         }
 
+        // O: 보스 즉시 소환
+        if (input.isKeyPressed('KeyO')) {
+            this._spawnBoss(game);
+        }
+
         // V: 무기 선택 패널 토글 (P 모드 해제)
         if (input.isKeyPressed('KeyV')) {
             this._weaponSelectMode = !this._weaponSelectMode;
@@ -319,6 +324,7 @@ export class DebugMode {
             `M  : Magnet ${this.magnetMode ? 'ON' : 'OFF'}`,
             `A  : Auto LvUp ${this.autoLevelUp ? 'ON' : 'OFF'}`,
             'C  : Spawn Chest',
+            'O  : Spawn Boss',
             'B  : Gold +1000',
             'X  : Instant Death',
             'N  : Instant Victory',
@@ -499,6 +505,21 @@ export class DebugMode {
     _spawnTestChest(game) {
         const chest = game.chests.get();
         chest.init(game.player.x + 60, game.player.y);
+    }
+
+    /**
+     * 보스를 플레이어 근처에 즉시 소환한다
+     */
+    _spawnBoss(game) {
+        const boss = game.enemies.get();
+        const stats = ENEMY.BOSS;
+        boss.init(
+            game.player.x + SPAWNER.SPAWN_DISTANCE * 0.5,
+            game.player.y,
+            stats,
+            'BOSS'
+        );
+        game.sound.play('bosswarn');
     }
 
     /**

@@ -77,9 +77,11 @@
 
 ---
 
-## [Unreleased] - 다음 버전에 포함될 예정
+## [Unreleased] - Phase 2 잔여 항목
 
 ### Planned (예정)
-- Phase 3: 사운드 & VFX (SoundManager, ParticlePool, ScreenEffects)
-- Phase 3: 무기 데미지 텍스트 색상 정리
-- Phase 3: 흡혈 시각 표시
+- 사운드: SoundManager (Web Audio API), BGM 1곡, 효과음 8종
+- VFX: ParticlePool, ScreenEffects (Hit Freeze, Screen Flash), 무기별 특화 이펙트
+- VFX: 무기 데미지 텍스트 색상 정리, 흡혈 시각 표시
+- 스테이지: 30분 타이머 + 최종 보스 (Death), 난이도 곡선 세분화
+- UI: PauseUI 영구 업그레이드 보너스 표시

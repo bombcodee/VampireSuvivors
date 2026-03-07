@@ -104,6 +104,8 @@ export class KingBible {
 
                     if (isDead && game) {
                         enemy.onDeath(game);
+                    } else if (game) {
+                        game.sound.play('hit');
                     }
                 }
             }

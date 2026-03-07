@@ -22,7 +22,7 @@ export class EnemySpawner {
      * @param {ObjectPool} enemyPool - 적 오브젝트 풀
      * @param {number} gameTime - 현재 게임 경과 시간 (초)
      */
-    update(dt, player, enemyPool, gameTime) {
+    update(dt, player, enemyPool, gameTime, game) {
         // 현재 시간에 맞는 웨이브 설정을 가져온다
         this._updateWave(gameTime);
 
@@ -50,10 +50,12 @@ export class EnemySpawner {
             this._spawnBoss(player, enemyPool, gameTime);
             this.bossSpawned = true;
             this._lastBossTime = gameTime;
+            if (game) game.sound.play('bosswarn');
         } else if (this.bossSpawned && SPAWNER.BOSS_RESPAWN_INTERVAL > 0) {
             if (gameTime - this._lastBossTime >= SPAWNER.BOSS_RESPAWN_INTERVAL) {
                 this._spawnBoss(player, enemyPool, gameTime);
                 this._lastBossTime = gameTime;
+                if (game) game.sound.play('bosswarn');
             }
         }
 
