@@ -89,6 +89,7 @@ export class CollisionSystem {
                 // 플레이어에게 데미지
                 const isDead = player.takeDamage(enemy.damage);
                 game.sound.play('hit');
+                game.screenFx.flash('#ff0000', 0.1);
 
                 if (isDead) {
                     // 게임 오버!
@@ -122,6 +123,7 @@ export class CollisionSystem {
                 // 경험치 획득
                 const leveledUp = player.addExp(gem.value);
                 game.sound.play('pickup');
+                game.particles.emit(gem.x, gem.y, 'GEM_SPARKLE');
 
                 // 보석 비활성화 (풀에 반환)
                 gem.active = false;

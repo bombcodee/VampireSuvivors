@@ -106,6 +106,13 @@ export class Enemy {
 
         ctx.save();
 
+        // 드라큘라 전용 렌더링 (맥동 + 글로우 + 두꺼운 테두리)
+        if (this.type === 'DRACULA') {
+            this._renderDracula(ctx, screen);
+            ctx.restore();
+            return;
+        }
+
         // 피격 시 흰색 플래시
         if (this.flashTimer > 0) {
             ctx.fillStyle = '#ffffff';
@@ -177,6 +184,7 @@ export class Enemy {
         if (!this.active) return;
 
         game.sound.play('kill');
+        game.particles.emit(this.x, this.y, 'DEATH_BURST', this.color);
 
         // 킬 카운트 증가
         game.player.killCount++;
@@ -187,6 +195,13 @@ export class Enemy {
         // 경험치 보석 드롭
         const gem = game.gems.get();
         gem.init(this.x, this.y, this.expValue);
+
+        // 드라큘라 처치 → 승리 트리거
+        if (this.type === 'DRACULA') {
+            this.active = false;
+            game.onDraculaKilled();
+            return;
+        }
 
         // 보스 사망 시 상자 드롭
         if (this.type === 'BOSS') {
@@ -212,5 +227,68 @@ export class Enemy {
 
         // 골드 배율 (영구 업그레이드)
         return Math.floor(baseGold * timeBonus * game.player.goldMultiplier);
+    }
+
+    /**
+     * 드라큘라 전용 렌더링
+     * - 맥동 애니메이션 (크기가 살짝 커졌다 작아졌다)
+     * - 보라색 글로우 (외곽 반투명 원)
+     * - 두꺼운 테두리 + 체력바
+     * @param {CanvasRenderingContext2D} ctx
+     * @param {Object} screen - 화면 좌표 {x, y}
+     */
+    _renderDracula(ctx, screen) {
+        // 맥동: radius가 0.95~1.05 사이를 왕복 (시간 기반)
+        const pulse = 1 + Math.sin(performance.now() / 200) * 0.05;
+        const drawRadius = this.radius * pulse;
+
+        // 외곽 글로우 (보라색 반투명 원)
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, drawRadius + 10, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(74, 0, 128, 0.25)';
+        ctx.fill();
+
+        // 피격 시 흰색 플래시
+        if (this.flashTimer > 0) {
+            ctx.fillStyle = '#ffffff';
+        } else {
+            ctx.fillStyle = this.color;
+        }
+
+        // 몸체 (원)
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, drawRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 두꺼운 테두리 (흰색)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // 체력바 (항상 표시)
+        const barWidth = this.radius * 2.5;
+        const barHeight = 5;
+        const barX = screen.x - barWidth / 2;
+        const barY = screen.y - drawRadius - 12;
+        const hpRatio = this.hp / this.maxHp;
+
+        // 배경
+        ctx.fillStyle = '#424242';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        // 체력 (보라색 그라데이션 느낌)
+        ctx.fillStyle = '#9c27b0';
+        ctx.fillRect(barX, barY, barWidth * hpRatio, barHeight);
+
+        // 체력바 테두리
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+        // 이름 표시
+        ctx.fillStyle = '#e1bee7';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('DRACULA', screen.x, barY - 4);
     }
 }

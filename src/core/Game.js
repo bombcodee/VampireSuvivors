@@ -31,6 +31,8 @@ import { UpgradeSystem } from '../systems/UpgradeSystem.js';
 import { Storage } from '../utils/Storage.js';
 import { DebugMode } from './DebugMode.js';
 import { SoundManager } from './SoundManager.js';
+import { ParticlePool } from '../effects/ParticlePool.js';
+import { ScreenEffects } from '../effects/ScreenEffects.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 
 /**
@@ -103,6 +105,10 @@ export class Game {
 
         // ===== 레벨업 선택지 =====
         this._currentChoices = [];
+
+        // ===== VFX =====
+        this.particles = new ParticlePool();
+        this.screenFx = new ScreenEffects();
 
         // ===== 사운드 =====
         this.sound = new SoundManager();
@@ -229,6 +235,7 @@ export class Game {
             case STATE.PAUSE:
                 this._renderGame();
                 this.hud.render(this.ctx, this);
+                this.screenFx.render(this.ctx, this.canvas.width, this.canvas.height);
                 this.debug.render(this.ctx, this);
                 if (this.state === STATE.PAUSE) {
                     this._renderPauseOverlay();
@@ -238,12 +245,14 @@ export class Game {
             case STATE.LEVELUP:
                 this._renderGame();
                 this.hud.render(this.ctx, this);
+                this.screenFx.render(this.ctx, this.canvas.width, this.canvas.height);
                 this.levelUpUI.render(this.ctx, this.canvas.width, this.canvas.height);
                 break;
 
             case STATE.EVOLUTION:
                 this._renderGame();
                 this.hud.render(this.ctx, this);
+                this.screenFx.render(this.ctx, this.canvas.width, this.canvas.height);
                 this.evolutionUI.render(this.ctx, this.canvas.width, this.canvas.height);
                 break;
 
@@ -321,15 +330,15 @@ export class Game {
             return;
         }
 
+        // Hit Freeze: 프리즈 중이면 타이머만 감소하고 업데이트 스킵
+        this.screenFx.update(dt);
+        if (this.screenFx.isFrozen) return;
+
         // 게임 시간 증가
         this.gameTime += dt;
 
-        // 게임 클리어 체크 (제한 시간 초과)
-        if (this.gameTime >= GAME.GAME_DURATION) {
-            this.sound.play('evolve');
-            this.state = STATE.VICTORY;
-            return;
-        }
+        // 30분 자동 승리 제거 — 드라큘라를 처치해야 승리
+        // (EnemySpawner가 30분에 드라큘라를 스폰한다)
 
         // 카메라 업데이트
         this.camera.update(dt);
@@ -377,6 +386,9 @@ export class Game {
         // 충돌 판정 (내부에서 비활성 투사체/보석 정리도 수행)
         this.collisionSystem.update(this);
 
+        // 파티클 업데이트
+        this.particles.update(dt);
+
         // 비활성 오브젝트 정리 (수명 만료 보석 포함)
         this.gems.releaseWhere(g => !g.active);
         this.damageTexts.releaseWhere(t => !t.active);
@@ -419,6 +431,8 @@ export class Game {
                 this.evolutionSystem.applyFallbackReward(this.player);
             } else {
                 this.sound.play('evolve');
+                this.particles.emit(this.player.x, this.player.y, 'EVOLUTION_FLASH');
+                this.screenFx.flash('#ffd700', 0.2);
                 // 진화 실행
                 const evo = this.evolutionUI.evolutions[selectedIndex];
                 if (evo) {
@@ -506,6 +520,9 @@ export class Game {
         ErrorGuard.safeLoopRender(this.damageTexts.getActive(), (text) => {
             text.render(this.ctx, this.camera);
         });
+
+        // 파티클
+        this.particles.render(this.ctx, this.camera);
     }
 
     /**
@@ -596,6 +613,8 @@ export class Game {
      */
     onLevelUp() {
         this.sound.play('levelup');
+        this.particles.emit(this.player.x, this.player.y, 'LEVELUP_RING');
+        this.screenFx.flash('#ffffff', 0.15);
 
         // 선택지 생성
         this._currentChoices = this.expSystem.generateChoices(this.player);
@@ -622,6 +641,17 @@ export class Game {
         const eligible = this.evolutionSystem.getEligibleEvolutions(this.player);
         this.evolutionUI.setEvolutions(eligible);
         this.state = STATE.EVOLUTION;
+    }
+
+    /**
+     * 드라큘라(최종 보스) 처치 시 호출된다 (Enemy.onDeath에서 호출)
+     * - 화면 효과 + 승리 처리
+     */
+    onDraculaKilled() {
+        this.sound.play('evolve');
+        this.particles.emit(this.player.x, this.player.y, 'EVOLUTION_FLASH');
+        this.screenFx.flash('#ffffff', 0.3);
+        this.state = STATE.VICTORY;
     }
 
     /**

@@ -3,7 +3,7 @@
  * - 게임 플레이 중 화면에 항상 표시되는 정보
  * - 체력바, 경험치바, 레벨, 타이머, 킬 수, 보유 무기 등
  */
-import { UI } from '../data/config.js';
+import { UI, SPAWNER } from '../data/config.js';
 
 export class HUD {
     constructor() {
@@ -39,6 +39,9 @@ export class HUD {
 
         // 보유 무기 목록 (좌하단)
         this._drawWeaponList(ctx, player, game.canvas.height);
+
+        // 드라큘라 경고/HP바 (30분 근처에서만 표시)
+        this._drawDraculaWarning(ctx, game, canvasW);
     }
 
     /**
@@ -174,5 +177,83 @@ export class HUD {
             }
             y -= 18;
         }
+    }
+
+    /**
+     * 드라큘라 경고 텍스트 또는 HP바를 표시한다
+     * - 29:30 ~ 30:00: 경고 텍스트 깜빡임
+     * - 30:00 이후 (드라큘라 생존 중): "DEFEAT DRACULA" + HP바
+     */
+    _drawDraculaWarning(ctx, game, canvasW) {
+        const gameTime = game.gameTime;
+        const spawner = game.enemySpawner;
+
+        // 경고 텍스트 (29:30 ~ 드라큘라 스폰 전)
+        if (gameTime >= SPAWNER.DRACULA_WARNING_TIME && !spawner._draculaSpawned) {
+            // 깜빡임 효과 (0.5초 주기)
+            const blink = Math.sin(performance.now() / 250) > 0;
+            if (blink) {
+                ctx.save();
+                ctx.fillStyle = '#ff1744';
+                ctx.font = `bold 20px ${UI.FONT_FAMILY}`;
+                ctx.textAlign = 'center';
+                ctx.fillText('DRACULA IS COMING...', canvasW / 2, 100);
+                ctx.restore();
+            }
+            return;
+        }
+
+        // 드라큘라 스폰 후: 활성 드라큘라 찾기
+        if (!spawner._draculaSpawned) return;
+
+        // 활성 적 중에서 드라큘라 찾기
+        const enemies = game.enemies.getActive();
+        let dracula = null;
+        for (const enemy of enemies) {
+            if (enemy.active && enemy.type === 'DRACULA') {
+                dracula = enemy;
+                break;
+            }
+        }
+
+        if (!dracula) return; // 이미 처치되었으면 표시 안 함
+
+        // "DEFEAT DRACULA" 텍스트
+        ctx.save();
+        ctx.fillStyle = '#e1bee7';
+        ctx.font = `bold 18px ${UI.FONT_FAMILY}`;
+        ctx.textAlign = 'center';
+        ctx.fillText('DEFEAT DRACULA', canvasW / 2, 95);
+
+        // HP바 (화면 상단 중앙)
+        const barWidth = 300;
+        const barHeight = 12;
+        const barX = (canvasW - barWidth) / 2;
+        const barY = 102;
+        const hpRatio = dracula.hp / dracula.maxHp;
+
+        // 배경
+        ctx.fillStyle = '#424242';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        // HP (보라색)
+        ctx.fillStyle = '#9c27b0';
+        ctx.fillRect(barX, barY, barWidth * hpRatio, barHeight);
+
+        // 테두리
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+        // HP 수치
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold 10px ${UI.FONT_FAMILY}`;
+        ctx.fillText(
+            `${Math.ceil(dracula.hp)} / ${dracula.maxHp}`,
+            canvasW / 2,
+            barY + barHeight - 1
+        );
+
+        ctx.restore();
     }
 }

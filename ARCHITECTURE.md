@@ -230,6 +230,7 @@ main.js
     ├── Input.js            (키보드/마우스 입력)
     ├── Camera.js           (카메라/뷰포트)
     ├── DebugMode.js        (디버그 도구: F1 토글)
+    ├── SoundManager.js     (Web Audio API 사운드)
     ├── Player.js           (이동, 체력, 무기 장착)
     ├── entities/
     │   ├── Enemy.js        (적 개체, onDeath 통합)
@@ -250,6 +251,9 @@ main.js
     │   ├── PauseUI.js, UpgradeShopUI.js
     │   ├── GameOverUI.js, VictoryUI.js
     │   └── (모든 UI는 Game 인스턴스 참조)
+    ├── effects/
+    │   ├── ParticlePool.js (파티클: 4 프리셋, 200개 풀)
+    │   └── ScreenEffects.js(화면 플래시 + Hit Freeze)
     ├── data/
     │   └── config.js       (모든 게임 수치 통합)
     └── utils/

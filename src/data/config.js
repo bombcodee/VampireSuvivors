@@ -82,6 +82,15 @@ export const ENEMY = {
         COLOR: '#ff1744',       // 진한 빨강
         EXP_VALUE: 50,
     },
+    // 최종 보스 (드라큘라) — 30분에 등장, 처치해야 승리
+    DRACULA: {
+        HP: 6000,               // 일반 보스(1500)의 4배
+        SPEED: 45,              // 보스(40)보다 약간 빠름
+        DAMAGE: 50,             // 보스(30)의 1.7배
+        RADIUS: 50,             // 보스(40)보다 큼
+        COLOR: '#4a0080',       // 어두운 보라색 (드라큘라 느낌)
+        EXP_VALUE: 200,
+    },
 };
 
 // ===== 적 스폰 설정 =====
@@ -108,6 +117,8 @@ export const SPAWNER = {
     ],
     BOSS_SPAWN_TIME: 300,       // 보스 첫 등장 시간 (5분 = 300초)
     BOSS_RESPAWN_INTERVAL: 120, // 보스 재등장 간격 (2분 = 120초)
+    DRACULA_WARNING_TIME: 1770, // 드라큘라 경고 시점 (29분 30초)
+    DRACULA_SPAWN_TIME: 1800,   // 드라큘라 등장 시점 (30분 = GAME_DURATION)
     // 시간 경과에 따른 적 스탯 스케일링 (5분 이후 적용)
     SCALING_START_TIME: 300,    // 스케일링 시작 시간 (초)
     SCALING_HP_PER_MIN: 0.15,   // 분당 HP 증가율 (15%)
@@ -412,6 +423,7 @@ export const GOLD = {
     ZOMBIE: 2,                  // 좀비 처치 골드
     SKELETON: 3,                // 스켈레톤 처치 골드
     BOSS: 25,                   // 보스 처치 골드
+    DRACULA: 100,               // 드라큘라 처치 골드
     TIME_BONUS_INTERVAL: 300,   // 시간 보너스 간격 (5분 = 300초)
     TIME_BONUS_RATE: 0.2,       // 간격당 보너스 증가율 (+20%)
     TIME_BONUS_MAX: 1.2,        // 최대 시간 보너스 (+120%)
@@ -473,6 +485,21 @@ export const UPGRADES = {
         COSTS: [200, 400, 800, 1500, 2500],
         COLOR: '#ffd54f',
     },
+};
+
+// ===== 파티클 설정 =====
+export const PARTICLES = {
+    MAX_COUNT: 200,             // 최대 동시 파티클 수
+    DEATH_BURST: { count: 5, speed: 150, life: 0.4, size: 3, gravity: 80 },
+    GEM_SPARKLE: { count: 3, speed: 50, life: 0.25, size: 2, gravity: 0, color: '#69f0ae' },
+    LEVELUP_RING: { count: 8, speed: 200, life: 0.5, size: 4, gravity: 0, color: '#ffd54f' },
+    EVOLUTION_FLASH: { count: 12, speed: 250, life: 0.6, size: 5, gravity: 0, color: '#ffd700' },
+};
+
+// ===== 화면 효과 설정 =====
+export const SCREEN_FX = {
+    FREEZE_DURATION: 0.03,      // Hit Freeze 지속 시간 (초)
+    FLASH_ALPHA: 0.4,           // 플래시 최대 알파값
 };
 
 // ===== 사운드 설정 =====

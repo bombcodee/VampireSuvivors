@@ -79,9 +79,26 @@
 
 ## [Unreleased] - Phase 2 잔여 항목
 
+### Added (추가)
+- SoundManager: Web Audio API 기반 프로시저럴 효과음 8종 (hit, kill, levelup, evolve, pickup, chest, bosswarn, ui_click)
+- VFX 시스템: ParticlePool (적 처치 파편, 보석 반짝임, 레벨업 링, 진화 플래시) + ScreenEffects (Screen Flash, Hit Freeze 메서드)
+- 최종 보스 드라큘라 (STG-001): 30분에 등장, 처치 시 승리 (자동 승리 제거)
+  - 드라큘라 전용 렌더링 (맥동, 보라 글로우, 두꺼운 테두리, 이름 표시)
+  - HUD: 29:30 경고 텍스트 깜빡임 + 드라큘라 HP바 상단 표시
+  - 드라큘라 스폰 후 일반 적 스폰 중단
+- 디버그: Shift+T 타임스킵(+60초), N키 드라큘라 즉시 소환
+- 디버그: V키 진화 무기 중복 생성 버그 수정, "(없음)" → "→ ★진화명" 표시 개선
+
+### Changed (변경)
+- 승리 조건: 30분 자동 승리 → 드라큘라 처치 시 승리
+- 적 피격 시 빨간색 화면 플래시 추가
+- 보석 획득 시 초록색 파티클 이펙트 추가
+- 레벨업/진화 시 파티클 + 플래시 이펙트 추가
+
 ### Planned (예정)
-- 사운드: SoundManager (Web Audio API), BGM 1곡, 효과음 8종
-- VFX: ParticlePool, ScreenEffects (Hit Freeze, Screen Flash), 무기별 특화 이펙트
+- BGM 1곡 (로열티 프리)
+- 효과음 퀄리티 개선 (SFX-004)
+- VFX: Hit Freeze 연결 (VFX-003), 무기별 특화 이펙트
 - VFX: 무기 데미지 텍스트 색상 정리, 흡혈 시각 표시
-- 스테이지: 30분 타이머 + 최종 보스 (Death), 난이도 곡선 세분화
+- 스테이지: 난이도 곡선 세분화 (STG-002)
 - UI: PauseUI 영구 업그레이드 보너스 표시

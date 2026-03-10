@@ -8,7 +8,7 @@
  * - K: 적 전체 처치
  * - 배포 시에는 비활성화할 것
  */
-import { SPAWNER, ENEMY, WEAPONS, PASSIVES, GAME } from '../data/config.js';
+import { SPAWNER, ENEMY, WEAPONS, PASSIVES, GAME, EVOLUTIONS } from '../data/config.js';
 import { UI } from '../data/config.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 import { Storage } from '../utils/Storage.js';
@@ -61,11 +61,17 @@ export class DebugMode {
             this.godMode = !this.godMode;
         }
 
+        // Shift+T: 타임스킵 (+60초) — 드라큘라 테스트용
         // T: 배속 변경 (1 → 2 → 4 → 1)
         if (input.isKeyPressed('KeyT')) {
-            if (this.timeScale === 1) this.timeScale = 2;
-            else if (this.timeScale === 2) this.timeScale = 4;
-            else this.timeScale = 1;
+            if (input.isKeyDown('ShiftLeft') || input.isKeyDown('ShiftRight')) {
+                // Shift+T: 게임 시간 60초 점프
+                game.gameTime += 60;
+            } else {
+                if (this.timeScale === 1) this.timeScale = 2;
+                else if (this.timeScale === 2) this.timeScale = 4;
+                else this.timeScale = 1;
+            }
         }
 
         // L: 즉시 레벨업
@@ -106,7 +112,7 @@ export class DebugMode {
             game.onPlayerDeath();
         }
 
-        // N: 즉승 (Victory 테스트)
+        // N: 드라큘라 즉시 소환 (30분으로 점프 → 드라큘라 스폰 트리거)
         if (input.isKeyPressed('KeyN')) {
             game.gameTime = GAME.GAME_DURATION;
         }
@@ -192,6 +198,9 @@ export class DebugMode {
         const shownTypes = new Set(wave.types);
         if (game.enemySpawner.bossSpawned || game.gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
             shownTypes.add('BOSS');
+        }
+        if (game.enemySpawner._draculaSpawned || game.gameTime >= SPAWNER.DRACULA_SPAWN_TIME) {
+            shownTypes.add('DRACULA');
         }
         // 에러 로그 줄 수 계산 (최대 3개 + 헤더 1줄)
         const errors = ErrorGuard.getErrors();
@@ -319,6 +328,7 @@ export class DebugMode {
             'F1 : Toggle Debug',
             'G  : God Mode',
             'T  : Speed (1x/2x/4x)',
+            'Sh+T: Time Skip +60s',
             'L  : Level Up',
             'K  : Kill All',
             `M  : Magnet ${this.magnetMode ? 'ON' : 'OFF'}`,
@@ -327,7 +337,7 @@ export class DebugMode {
             'O  : Spawn Boss',
             'B  : Gold +1000',
             'X  : Instant Death',
-            'N  : Instant Victory',
+            'N  : Spawn Dracula',
             'V  : Weapon → MAX',
             'P  : Grant Passive',
         ];
@@ -405,9 +415,15 @@ export class DebugMode {
                     const lvText = isMax ? 'MAX' : `Lv.${weapon.level}`;
                     ctx.fillText(`[${num}] ${config.NAME}  ${lvText}`, x, y);
                 } else {
-                    // 미보유 무기
-                    ctx.fillStyle = '#555555';
-                    ctx.fillText(`[${num}] ${config.NAME}  (없음)`, x, y);
+                    // 진화된 무기인지 체크
+                    const evolvedId = this._getEvolvedId(player, id);
+                    if (evolvedId) {
+                        ctx.fillStyle = '#ffd700';
+                        ctx.fillText(`[${num}] ${config.NAME}  → ★${EVOLUTIONS[evolvedId].NAME}`, x, y);
+                    } else {
+                        ctx.fillStyle = '#555555';
+                        ctx.fillText(`[${num}] ${config.NAME}  (없음)`, x, y);
+                    }
                 }
             } else {
                 const level = player.passiveLevels[id] || 0;
@@ -437,6 +453,13 @@ export class DebugMode {
 
         const [weaponId, config] = weaponEntries[index];
         const player = game.player;
+
+        // 이미 진화된 무기면 스킵 (중복 생성 방지)
+        if (this._getEvolvedId(player, weaponId)) {
+            this._weaponSelectMode = false;
+            return;
+        }
+
         let weapon = player.getWeapon(weaponId);
 
         // 미보유 무기면 새로 추가
@@ -454,6 +477,21 @@ export class DebugMode {
         }
 
         this._weaponSelectMode = false;
+    }
+
+    /**
+     * 기본 무기 ID에 대응하는 진화 무기가 플레이어에게 있는지 확인한다
+     * @param {Object} player - Player 인스턴스
+     * @param {string} baseWeaponId - 기본 무기 ID (예: 'MAGIC_WAND')
+     * @returns {string|null} 진화 무기 ID 또는 null
+     */
+    _getEvolvedId(player, baseWeaponId) {
+        for (const [evoId, evoCfg] of Object.entries(EVOLUTIONS)) {
+            if (evoCfg.BASE_WEAPON === baseWeaponId && player.getWeapon(evoId)) {
+                return evoId;
+            }
+        }
+        return null;
     }
 
     /**

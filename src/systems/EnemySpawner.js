@@ -13,6 +13,8 @@ export class EnemySpawner {
         this.currentWaveIndex = 0;      // 현재 웨이브 인덱스
         this.bossSpawned = false;       // 보스 스폰 여부
         this._lastBossTime = 0;         // 마지막 보스 스폰 시간
+        this._draculaWarned = false;    // 드라큘라 경고 표시 여부
+        this._draculaSpawned = false;   // 드라큘라 스폰 여부
     }
 
     /**
@@ -23,6 +25,25 @@ export class EnemySpawner {
      * @param {number} gameTime - 현재 게임 경과 시간 (초)
      */
     update(dt, player, enemyPool, gameTime, game) {
+        // 드라큘라 경고 체크 (29분 30초)
+        if (!this._draculaWarned && gameTime >= SPAWNER.DRACULA_WARNING_TIME) {
+            this._draculaWarned = true;
+            if (game) game.sound.play('bosswarn');
+        }
+
+        // 드라큘라 스폰 체크 (30분)
+        if (!this._draculaSpawned && gameTime >= SPAWNER.DRACULA_SPAWN_TIME) {
+            this._spawnDracula(player, enemyPool, game);
+            this._draculaSpawned = true;
+        }
+
+        // 드라큘라 스폰 이후: 일반 적/보스 스폰 중단
+        if (this._draculaSpawned) {
+            // 디스폰만 계속 처리 (멀리 떨어진 일반 적 정리)
+            this._despawnFarEnemies(player, enemyPool);
+            return;
+        }
+
         // 현재 시간에 맞는 웨이브 설정을 가져온다
         this._updateWave(gameTime);
 
@@ -161,6 +182,29 @@ export class EnemySpawner {
     }
 
     /**
+     * 드라큘라(최종 보스)를 스폰한다
+     * - 스케일링 미적용 (고정 스탯)
+     * - 플레이어 전방에 등장
+     * @param {Object} player - 플레이어
+     * @param {ObjectPool} enemyPool - 적 풀
+     * @param {Object} game - Game 인스턴스
+     */
+    _spawnDracula(player, enemyPool, game) {
+        const angle = randomAngle();
+        const x = player.x + Math.cos(angle) * SPAWNER.SPAWN_DISTANCE;
+        const y = player.y + Math.sin(angle) * SPAWNER.SPAWN_DISTANCE;
+
+        // 드라큘라는 고정 스탯 (스케일링 없음)
+        const dracula = enemyPool.get();
+        dracula.init(x, y, ENEMY.DRACULA, 'DRACULA');
+
+        if (game) {
+            game.sound.play('bosswarn');
+            game.screenFx.flash('#4a0080', 0.3);
+        }
+    }
+
+    /**
      * 스폰 시스템을 리셋한다 (게임 재시작 시)
      */
     reset() {
@@ -168,5 +212,7 @@ export class EnemySpawner {
         this.currentWaveIndex = 0;
         this.bossSpawned = false;
         this._lastBossTime = 0;
+        this._draculaWarned = false;
+        this._draculaSpawned = false;
     }
 }
