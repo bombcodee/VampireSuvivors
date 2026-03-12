@@ -28,6 +28,11 @@ export class SoundManager {
         // ===== 디바운스 =====
         this._lastPlayTime = {};  // { soundId: timestamp }
 
+        // ===== 보스 BGM 노드 참조 (정지용) =====
+        this._bossBgmNodes = [];    // 현재 재생 중인 보스 BGM 오실레이터/게인 목록
+        this._bossBgmPlaying = false;
+        this._bossBgmTimer = null;  // 루프 패턴 반복용 타이머 ID
+
         // ===== 음소거 =====
         this._muted = false;
         this._prevMasterVolume = SOUNDS.MASTER_VOLUME;
@@ -66,6 +71,7 @@ export class SoundManager {
             case 'pickup':   this._playPickup(now); break;
             case 'chest':    this._playChest(now); break;
             case 'bosswarn': this._playBossWarn(now); break;
+            case 'draculawarn': this._playDraculaWarn(now); break;
             case 'ui_click': this._playUIClick(now); break;
         }
     }
@@ -104,7 +110,124 @@ export class SoundManager {
     }
 
     // ========================================
-    // 프로시저럴 효과음 8종
+    // 보스 BGM (루프)
+    // ========================================
+
+    /**
+     * 보스 BGM을 시작한다 (드라큘라 스폰 시)
+     * - 어둡고 긴박한 루프: 저음 드론 + 맥동 베이스 + 불협화음 패드
+     * - stopBossBGM()으로 정지
+     */
+    startBossBGM() {
+        if (this._bossBgmPlaying || this._muted) return;
+        this._bossBgmPlaying = true;
+
+        // --- 레이어 1: 불길한 저음 드론 (sawtooth, 지속) ---
+        const drone = this._ctx.createOscillator();
+        const droneGain = this._ctx.createGain();
+        drone.type = 'sawtooth';
+        drone.frequency.value = 45;             // 매우 낮은 음
+        droneGain.gain.value = 0.18;
+        drone.connect(droneGain).connect(this._bgmGain);
+        drone.start();
+        this._bossBgmNodes.push(drone, droneGain);
+
+        // --- 레이어 2: 맥동하는 서브베이스 (LFO로 볼륨 변조) ---
+        const sub = this._ctx.createOscillator();
+        const subGain = this._ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.value = 30;               // 깊은 서브베이스
+        subGain.gain.value = 0.25;
+        sub.connect(subGain).connect(this._bgmGain);
+        sub.start();
+        this._bossBgmNodes.push(sub, subGain);
+
+        // LFO: 서브베이스 볼륨을 맥동시킨다 (심장박동 느낌)
+        const lfo = this._ctx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 1.5;              // 1.5Hz = 분당 90회 맥동
+        const lfoGain = this._ctx.createGain();
+        lfoGain.gain.value = 0.15;              // 맥동 깊이
+        lfo.connect(lfoGain).connect(subGain.gain);
+        lfo.start();
+        this._bossBgmNodes.push(lfo, lfoGain);
+
+        // --- 레이어 3: 불협화음 패드 (트라이톤, 지속) ---
+        const pad1 = this._ctx.createOscillator();
+        const padGain1 = this._ctx.createGain();
+        pad1.type = 'triangle';
+        pad1.frequency.value = 131;             // C3
+        padGain1.gain.value = 0.08;
+        pad1.connect(padGain1).connect(this._bgmGain);
+        pad1.start();
+        this._bossBgmNodes.push(pad1, padGain1);
+
+        const pad2 = this._ctx.createOscillator();
+        const padGain2 = this._ctx.createGain();
+        pad2.type = 'triangle';
+        pad2.frequency.value = 185;             // F#3 (트라이톤 = 악마의 음정)
+        padGain2.gain.value = 0.08;
+        pad2.connect(padGain2).connect(this._bgmGain);
+        pad2.start();
+        this._bossBgmNodes.push(pad2, padGain2);
+
+        // --- 레이어 4: 긴박한 리듬 펄스 (4비트 느낌) ---
+        this._startBossRhythm();
+    }
+
+    /**
+     * 보스 BGM 리듬 패턴을 반복 재생한다 (스케줄링 방식)
+     * - 0.4초 간격으로 짧은 킥/스내어 느낌의 펄스
+     */
+    _startBossRhythm() {
+        const interval = 0.4;  // 150 BPM 느낌
+        const playPulse = () => {
+            if (!this._bossBgmPlaying) return;
+            const now = this._ctx.currentTime;
+
+            // 킥 (짧은 저음 펄스)
+            const kick = this._ctx.createOscillator();
+            const kickGain = this._ctx.createGain();
+            kick.type = 'sine';
+            kick.frequency.setValueAtTime(80, now);
+            kick.frequency.exponentialRampToValueAtTime(30, now + 0.1);
+            kickGain.gain.setValueAtTime(0.2, now);
+            kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            kick.connect(kickGain).connect(this._bgmGain);
+            kick.start(now);
+            kick.stop(now + 0.15);
+
+            this._bossBgmTimer = setTimeout(playPulse, interval * 1000);
+        };
+        playPulse();
+    }
+
+    /**
+     * 보스 BGM을 정지한다 (드라큘라 처치 시)
+     */
+    stopBossBGM() {
+        this._bossBgmPlaying = false;
+
+        // 타이머 정지
+        if (this._bossBgmTimer) {
+            clearTimeout(this._bossBgmTimer);
+            this._bossBgmTimer = null;
+        }
+
+        // 모든 오실레이터/게인 노드 정지 + 연결 해제
+        for (const node of this._bossBgmNodes) {
+            try {
+                if (node.stop) node.stop();
+                node.disconnect();
+            } catch (_) {
+                // 이미 정지된 노드는 무시
+            }
+        }
+        this._bossBgmNodes = [];
+    }
+
+    // ========================================
+    // 프로시저럴 효과음 9종
     // ========================================
 
     /**
@@ -310,6 +433,86 @@ export class SoundManager {
         sub2.connect(subGain2).connect(this._sfxGain);
         sub2.start(now + delay);
         sub2.stop(now + delay + 0.6);
+    }
+
+    /**
+     * 드라큘라 경고: 불길한 저음 드론 → 불협화음 → 웅장한 임팩트 (~3초)
+     * 29:30 경고 시점 + 드라큘라 스폰 시점에 재생
+     */
+    _playDraculaWarn(now) {
+        // === Phase 1: 불길한 저음 드론 (으르르르...) ===
+        const drone = this._ctx.createOscillator();
+        const droneGain = this._ctx.createGain();
+        drone.type = 'sawtooth';
+        drone.frequency.setValueAtTime(55, now);          // A1 (매우 낮은 음)
+        drone.frequency.linearRampToValueAtTime(45, now + 2.0);
+        droneGain.gain.setValueAtTime(0, now);
+        droneGain.gain.linearRampToValueAtTime(0.35, now + 0.3);
+        droneGain.gain.setValueAtTime(0.35, now + 1.5);
+        droneGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+        drone.connect(droneGain).connect(this._sfxGain);
+        drone.start(now);
+        drone.stop(now + 3.0);
+
+        // 드론 보강: 서브베이스 (깊은 진동감)
+        const subDrone = this._ctx.createOscillator();
+        const subDroneGain = this._ctx.createGain();
+        subDrone.type = 'sine';
+        subDrone.frequency.setValueAtTime(35, now);
+        subDrone.frequency.linearRampToValueAtTime(28, now + 2.5);
+        subDroneGain.gain.setValueAtTime(0, now);
+        subDroneGain.gain.linearRampToValueAtTime(0.4, now + 0.5);
+        subDroneGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+        subDrone.connect(subDroneGain).connect(this._sfxGain);
+        subDrone.start(now);
+        subDrone.stop(now + 3.0);
+
+        // === Phase 2: 불협화음 (트라이톤 — 악마의 음정) ===
+        const dissonance1 = this._ctx.createOscillator();
+        const disGain1 = this._ctx.createGain();
+        dissonance1.type = 'triangle';
+        dissonance1.frequency.value = 185;                  // F#3
+        disGain1.gain.setValueAtTime(0, now + 0.5);
+        disGain1.gain.linearRampToValueAtTime(0.2, now + 0.8);
+        disGain1.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+        dissonance1.connect(disGain1).connect(this._sfxGain);
+        dissonance1.start(now + 0.5);
+        dissonance1.stop(now + 2.5);
+
+        const dissonance2 = this._ctx.createOscillator();
+        const disGain2 = this._ctx.createGain();
+        dissonance2.type = 'triangle';
+        dissonance2.frequency.value = 131;                  // C3 (트라이톤 관계)
+        disGain2.gain.setValueAtTime(0, now + 0.5);
+        disGain2.gain.linearRampToValueAtTime(0.2, now + 0.8);
+        disGain2.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+        dissonance2.connect(disGain2).connect(this._sfxGain);
+        dissonance2.start(now + 0.5);
+        dissonance2.stop(now + 2.5);
+
+        // === Phase 3: 임팩트 "둥!!!" (최종 타격) ===
+        const impact = this._ctx.createOscillator();
+        const impactGain = this._ctx.createGain();
+        impact.type = 'triangle';
+        impact.frequency.setValueAtTime(120, now + 1.8);
+        impact.frequency.exponentialRampToValueAtTime(30, now + 3.0);
+        impactGain.gain.setValueAtTime(0.7, now + 1.8);
+        impactGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+        impact.connect(impactGain).connect(this._sfxGain);
+        impact.start(now + 1.8);
+        impact.stop(now + 3.0);
+
+        // 임팩트 서브베이스 (진동)
+        const impactSub = this._ctx.createOscillator();
+        const impactSubGain = this._ctx.createGain();
+        impactSub.type = 'sine';
+        impactSub.frequency.setValueAtTime(80, now + 1.8);
+        impactSub.frequency.exponentialRampToValueAtTime(20, now + 3.0);
+        impactSubGain.gain.setValueAtTime(0.6, now + 1.8);
+        impactSubGain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+        impactSub.connect(impactSubGain).connect(this._sfxGain);
+        impactSub.start(now + 1.8);
+        impactSub.stop(now + 3.0);
     }
 
     /**

@@ -15,6 +15,7 @@ export class EnemySpawner {
         this._lastBossTime = 0;         // 마지막 보스 스폰 시간
         this._draculaWarned = false;    // 드라큘라 경고 표시 여부
         this._draculaSpawned = false;   // 드라큘라 스폰 여부
+        this._draculaWarnTimer = 0;     // 드라큘라 경고음 반복 타이머 (5초 간격)
     }
 
     /**
@@ -28,7 +29,17 @@ export class EnemySpawner {
         // 드라큘라 경고 체크 (29분 30초)
         if (!this._draculaWarned && gameTime >= SPAWNER.DRACULA_WARNING_TIME) {
             this._draculaWarned = true;
-            if (game) game.sound.play('bosswarn');
+            this._draculaWarnTimer = 0;  // 첫 경고음 즉시 재생
+            if (game) game.sound.play('draculawarn');
+        }
+
+        // 드라큘라 경고 중 (스폰 전까지만): 5초 간격으로 불길한 저음 반복
+        if (this._draculaWarned && !this._draculaSpawned && game) {
+            this._draculaWarnTimer -= dt;
+            if (this._draculaWarnTimer <= 0) {
+                this._draculaWarnTimer = SPAWNER.DRACULA_WARN_INTERVAL;
+                game.sound.play('draculawarn');
+            }
         }
 
         // 드라큘라 스폰 체크 (30분)
@@ -175,6 +186,8 @@ export class EnemySpawner {
     _despawnFarEnemies(player, enemyPool) {
         const maxDist = SPAWNER.DESPAWN_DISTANCE;
         enemyPool.releaseWhere((enemy) => {
+            // 보스/드라큘라는 거리와 무관하게 디스폰하지 않음
+            if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') return false;
             const dx = enemy.x - player.x;
             const dy = enemy.y - player.y;
             return (dx * dx + dy * dy) > (maxDist * maxDist);
@@ -199,7 +212,8 @@ export class EnemySpawner {
         dracula.init(x, y, ENEMY.DRACULA, 'DRACULA');
 
         if (game) {
-            game.sound.play('bosswarn');
+            game.sound.play('draculawarn');
+            game.sound.startBossBGM();    // 보스 BGM 루프 시작
             game.screenFx.flash('#4a0080', 0.3);
         }
     }
@@ -214,5 +228,6 @@ export class EnemySpawner {
         this._lastBossTime = 0;
         this._draculaWarned = false;
         this._draculaSpawned = false;
+        this._draculaWarnTimer = 0;
     }
 }

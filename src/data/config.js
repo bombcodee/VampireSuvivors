@@ -119,6 +119,7 @@ export const SPAWNER = {
     BOSS_RESPAWN_INTERVAL: 120, // 보스 재등장 간격 (2분 = 120초)
     DRACULA_WARNING_TIME: 1770, // 드라큘라 경고 시점 (29분 30초)
     DRACULA_SPAWN_TIME: 1800,   // 드라큘라 등장 시점 (30분 = GAME_DURATION)
+    DRACULA_WARN_INTERVAL: 5,   // 드라큘라 경고음 반복 간격 (초)
     // 시간 경과에 따른 적 스탯 스케일링 (5분 이후 적용)
     SCALING_START_TIME: 300,    // 스케일링 시작 시간 (초)
     SCALING_HP_PER_MIN: 0.15,   // 분당 HP 증가율 (15%)

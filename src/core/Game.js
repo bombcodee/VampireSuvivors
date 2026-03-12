@@ -648,6 +648,7 @@ export class Game {
      * - 화면 효과 + 승리 처리
      */
     onDraculaKilled() {
+        this.sound.stopBossBGM();       // 보스 BGM 정지
         this.sound.play('evolve');
         this.particles.emit(this.player.x, this.player.y, 'EVOLUTION_FLASH');
         this.screenFx.flash('#ffffff', 0.3);
@@ -658,6 +659,7 @@ export class Game {
      * 플레이어 사망 시 호출된다 (CollisionSystem에서 호출)
      */
     onPlayerDeath() {
+        this.sound.stopBossBGM();       // 보스 BGM 정지 (드라큘라전 중 사망 대비)
         this.state = STATE.GAMEOVER;
     }
 }
