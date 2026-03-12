@@ -103,9 +103,10 @@ export class ThunderLoop {
             prevX = target.x;
             prevY = target.y;
 
+            // 데미지 텍스트 (히트 파티클 색상과 통일)
             if (game && game.damageTexts) {
                 const text = game.damageTexts.get();
-                text.init(target.x, target.y - target.radius, finalDamage, CFG.COLOR);
+                text.init(target.x, target.y - target.radius, finalDamage, CFG.DAMAGE_TEXT_COLOR || CFG.COLOR);
             }
 
             if (isDead && game) {

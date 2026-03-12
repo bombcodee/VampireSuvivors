@@ -102,7 +102,7 @@ export class Garlic {
                 // 데미지 텍스트 표시
                 if (game && game.damageTexts) {
                     const text = game.damageTexts.get();
-                    text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#c8e6c9');
+                    text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#66bb6a');
                 }
 
                 // 적 사망 처리

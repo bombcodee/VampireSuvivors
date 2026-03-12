@@ -44,8 +44,8 @@ export class CollisionSystem {
                     // 히트 파티클 (무기별 피격 이펙트)
                     game.particles.emitHit(enemy.x, enemy.y, proj.hitColor, proj.x, proj.y);
 
-                    // 데미지 텍스트 표시
-                    this._spawnDamageText(game, enemy.x, enemy.y - enemy.radius, proj.damage);
+                    // 데미지 텍스트 표시 (히트 글로우 색상 = 파티클 색상과 통일)
+                    this._spawnDamageText(game, enemy.x, enemy.y - enemy.radius, proj.damage, proj.hitColor || proj.color);
 
                     // 적 사망 처리
                     if (isDead) {
@@ -175,8 +175,8 @@ export class CollisionSystem {
      * @param {number} y - Y 위치
      * @param {number} damage - 데미지 값
      */
-    _spawnDamageText(game, x, y, damage) {
+    _spawnDamageText(game, x, y, damage, color = '#ffab40') {
         const text = game.damageTexts.get();
-        text.init(x, y, damage, '#ffab40');
+        text.init(x, y, damage, color);
     }
 }

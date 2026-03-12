@@ -83,7 +83,7 @@ export class Whip {
             // 데미지 텍스트
             if (game && game.damageTexts) {
                 const text = game.damageTexts.get();
-                text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#bcaaa4');
+                text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#ff1744');
             }
 
             // 적 사망 처리

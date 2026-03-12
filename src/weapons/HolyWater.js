@@ -91,7 +91,7 @@ export class HolyWater {
                 // 데미지 텍스트
                 if (game && game.damageTexts) {
                     const text = game.damageTexts.get();
-                    text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#64b5f6');
+                    text.init(enemy.x, enemy.y - enemy.radius, finalDamage, '#42a5f5');
                 }
 
                 // 적 사망 처리

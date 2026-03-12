@@ -101,11 +101,17 @@
   - ParticlePool.emitHit(): 공격 반대 방향 콘(90도) 형태 방출
   - Lightning 계열 색상 분리: 노란색 → 하늘색 (#87ceeb)
   - Hit Freeze: 비활성화 (0) — 코드 기반에서는 렉으로 느껴짐
+- VFX-004: 무기별 데미지 텍스트 색상 통일
+  - 원칙: 데미지 텍스트 색 = 히트 파티클 색 = 히트 글로우 색
+  - 16종 무기 전체 색상 정리 (12종 변경, 4종 유지)
+  - CollisionSystem: proj.hitColor로 투사체 무기 텍스트 색상 전달
+  - 진화 무기: DAMAGE_TEXT_COLOR 필드 추가 (렌더링 색과 분리)
+  - KingBible/SoulEater 보라색 겹침 해소 (SoulEater → 초록)
 - STG-002: 난이도 곡선 세분화 + 디버그 개선 + 보스 버그 수정
 - 드라큘라 디스폰 버그 수정 + 경고음/보스 BGM 추가
 
 ### Planned (예정)
 - BGM 1곡 (로열티 프리)
 - 효과음 퀄리티 개선 (SFX-004)
-- VFX: 무기 데미지 텍스트 색상 정리, 흡혈 시각 표시
+- VFX: 흡혈 시각 표시
 - UI: PauseUI 영구 업그레이드 보너스 표시

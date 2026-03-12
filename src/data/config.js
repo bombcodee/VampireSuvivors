@@ -356,6 +356,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'MAGIC_WAND',
         REQUIRED_PASSIVE: 'ARMOR',
         COLOR: '#e1f5fe',
+        DAMAGE_TEXT_COLOR: '#ffd700',   // 히트 파티클(HIT_SPARK) 색상과 통일
         SPREAD_ANGLE: 0.15,
         STATS: { damage: 30, cooldown: 0.5, speed: 500, count: 4, size: 10, pierce: 2 },
     },
@@ -366,6 +367,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'GARLIC',
         REQUIRED_PASSIVE: 'MAX_HP_UP',
         COLOR: '#b388ff',
+        DAMAGE_TEXT_COLOR: '#66bb6a',   // 히트 파티클(HIT_POISON) 색상과 통일
         STATS: { damage: 18, cooldown: 0.6, radius: 150, knockback: 40, lifesteal: 1 },
     },
     // Whip (Lv5) + Speed Boost = Bloody Tear
@@ -375,6 +377,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'WHIP',
         REQUIRED_PASSIVE: 'MOVE_SPEED',
         COLOR: '#d50000',
+        DAMAGE_TEXT_COLOR: '#ff1744',   // 히트 파티클(HIT_SLASH) 색상과 통일
         STATS: { damage: 40, cooldown: 0.8, range: 150, knockback: 30, lifesteal: 2 },
     },
     // Knife (Lv5) + Magnet = Thousand Edge
@@ -402,6 +405,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'KING_BIBLE',
         REQUIRED_PASSIVE: 'ARMOR',
         COLOR: '#ea80fc',
+        DAMAGE_TEXT_COLOR: '#ce93d8',   // 히트 파티클(HIT_HOLY) 색상과 통일
         HIT_COOLDOWN: 0.25,
         COLLISION_RADIUS: 14,
         STATS: { damage: 15, orbitRadius: 120, count: 6, speed: 3.5 },
@@ -413,6 +417,7 @@ export const EVOLUTIONS = {
         BASE_WEAPON: 'FIRE_WAND',
         REQUIRED_PASSIVE: 'MAX_HP_UP',
         COLOR: '#ff3d00',
+        DAMAGE_TEXT_COLOR: '#ff7043',   // 히트 파티클(HIT_FIRE) 색상과 통일
         SPREAD_ANGLE: 0.25,
         STATS: { damage: 40, cooldown: 0.8, speed: 350, count: 2, size: 16, pierce: 6 },
     },

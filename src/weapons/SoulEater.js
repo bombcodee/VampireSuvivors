@@ -70,10 +70,10 @@ export class SoulEater {
             // 히트 파티클
             if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.SOUL_EATER, playerX, playerY);
 
-            // 데미지 텍스트 (보라색)
+            // 데미지 텍스트 (히트 파티클 색상과 통일)
             if (game && game.damageTexts) {
                 const text = game.damageTexts.get();
-                text.init(enemy.x, enemy.y - enemy.radius, finalDamage, CFG.COLOR);
+                text.init(enemy.x, enemy.y - enemy.radius, finalDamage, CFG.DAMAGE_TEXT_COLOR || CFG.COLOR);
             }
 
             // 적 사망 처리 + 흡혈
