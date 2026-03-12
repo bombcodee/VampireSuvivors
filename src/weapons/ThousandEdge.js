@@ -4,7 +4,7 @@
  * - 8발 방사형 발사, 초고속 쿨다운
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.THOUSAND_EDGE;
 
@@ -62,6 +62,7 @@ export class ThousandEdge {
                 size: this.size,
                 color: CFG.COLOR,
                 weaponId: this.id,
+                hitColor: HIT_GLOW.COLORS.THOUSAND_EDGE,
             });
         }
     }

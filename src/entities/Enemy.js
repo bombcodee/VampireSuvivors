@@ -5,7 +5,7 @@
  * - 오브젝트 풀에서 재사용된다
  */
 import { normalize } from '../utils/MathUtils.js';
-import { GOLD } from '../data/config.js';
+import { GOLD, HIT_GLOW } from '../data/config.js';
 
 export class Enemy {
     constructor() {
@@ -30,6 +30,11 @@ export class Enemy {
         this.flashTimer = 0;        // 피격 시 흰색 깜빡
         this.knockbackX = 0;        // 넉백 속도 X
         this.knockbackY = 0;        // 넉백 속도 Y
+
+        // ===== 적중 글로우 이펙트 =====
+        this._glowTimer = 0;        // 글로우 남은 시간
+        this._glowColor = '#ffffff'; // 글로우 색상 (무기에 따라 변경)
+        this._lastHitColor = null;  // 마지막 피격 색상 (사망 파티클용)
     }
 
     /**
@@ -54,6 +59,9 @@ export class Enemy {
         this.flashTimer = 0;
         this.knockbackX = 0;
         this.knockbackY = 0;
+        this._glowTimer = 0;
+        this._glowColor = '#ffffff';
+        this._lastHitColor = null;
     }
 
     /**
@@ -89,6 +97,11 @@ export class Enemy {
         if (this.flashTimer > 0) {
             this.flashTimer -= dt;
         }
+
+        // 글로우 타이머 감소
+        if (this._glowTimer > 0) {
+            this._glowTimer -= dt;
+        }
     }
 
     /**
@@ -111,6 +124,18 @@ export class Enemy {
             this._renderDracula(ctx, screen);
             ctx.restore();
             return;
+        }
+
+        // 적중 글로우 아웃라인 (무기 색상)
+        if (this._glowTimer > 0) {
+            const glowAlpha = this._glowTimer / HIT_GLOW.DURATION;
+            ctx.beginPath();
+            ctx.arc(screen.x, screen.y, this.radius + HIT_GLOW.RADIUS_ADD, 0, Math.PI * 2);
+            ctx.strokeStyle = this._glowColor;
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = glowAlpha;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
         }
 
         // 피격 시 흰색 플래시
@@ -157,13 +182,21 @@ export class Enemy {
      * @param {number} amount - 피해량
      * @param {number} [fromX] - 공격 출발 X (넉백 방향 계산용)
      * @param {number} [fromY] - 공격 출발 Y
+     * @param {string} [hitColor] - 적중 글로우 색상 (무기별)
      * @returns {boolean} 사망했으면 true
      */
-    takeDamage(amount, fromX, fromY) {
+    takeDamage(amount, fromX, fromY, hitColor) {
         if (!this.active) return false;
 
         this.hp -= amount;
         this.flashTimer = 0.1;
+
+        // 적중 글로우 이펙트 설정
+        if (hitColor) {
+            this._glowTimer = HIT_GLOW.DURATION;
+            this._glowColor = hitColor;
+            this._lastHitColor = hitColor;
+        }
 
         // 넉백 (공격 반대 방향으로 밀기)
         if (fromX !== undefined && fromY !== undefined) {
@@ -184,7 +217,15 @@ export class Enemy {
         if (!this.active) return;
 
         game.sound.play('kill');
-        game.particles.emit(this.x, this.y, 'DEATH_BURST', this.color);
+
+        // 사망 파티클: 무기 색상 우선, 없으면 적 색상
+        const burstColor = this._lastHitColor || this.color;
+        game.particles.emit(this.x, this.y, 'DEATH_BURST', burstColor);
+
+        // 처치 히트프리즈 (보스/드라큘라는 더 강하게)
+        const isBoss = (this.type === 'BOSS' || this.type === 'DRACULA');
+        const freezeDur = isBoss ? HIT_GLOW.BOSS_KILL_FREEZE : HIT_GLOW.KILL_FREEZE;
+        game.screenFx.freeze(freezeDur);
 
         // 킬 카운트 증가
         game.player.killCount++;
@@ -241,6 +282,18 @@ export class Enemy {
         // 맥동: radius가 0.95~1.05 사이를 왕복 (시간 기반)
         const pulse = 1 + Math.sin(performance.now() / 200) * 0.05;
         const drawRadius = this.radius * pulse;
+
+        // 적중 글로우 아웃라인 (무기 색상) — 기본 글로우 위에 겹침
+        if (this._glowTimer > 0) {
+            const glowAlpha = this._glowTimer / HIT_GLOW.DURATION;
+            ctx.beginPath();
+            ctx.arc(screen.x, screen.y, drawRadius + 14, 0, Math.PI * 2);
+            ctx.strokeStyle = this._glowColor;
+            ctx.lineWidth = 4;
+            ctx.globalAlpha = glowAlpha;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
 
         // 외곽 글로우 (보라색 반투명 원)
         ctx.beginPath();

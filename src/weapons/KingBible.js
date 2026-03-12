@@ -5,7 +5,7 @@
  * - 회전 중 닿는 적에게 데미지를 준다
  */
 import { distance } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class KingBible {
     constructor() {
@@ -95,7 +95,10 @@ export class KingBible {
                 if (dist < bookRadius + enemy.radius) {
                     this._hitCooldowns.set(hitKey, WEAPONS.KING_BIBLE.HIT_COOLDOWN);
 
-                    const isDead = enemy.takeDamage(finalDamage, bookX, bookY);
+                    const isDead = enemy.takeDamage(finalDamage, bookX, bookY, HIT_GLOW.COLORS.KING_BIBLE);
+
+                    // 히트 파티클
+                    if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.KING_BIBLE, bookX, bookY);
 
                     if (game && game.damageTexts) {
                         const text = game.damageTexts.get();
@@ -106,6 +109,9 @@ export class KingBible {
                         enemy.onDeath(game);
                     } else if (game) {
                         game.sound.play('hit');
+                        if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                            game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                        }
                     }
                 }
             }

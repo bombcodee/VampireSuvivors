@@ -252,7 +252,7 @@ main.js
     │   ├── GameOverUI.js, VictoryUI.js
     │   └── (모든 UI는 Game 인스턴스 참조)
     ├── effects/
-    │   ├── ParticlePool.js (파티클: 4 프리셋, 200개 풀)
+    │   ├── ParticlePool.js (파티클: 4 프리셋 + 히트 파티클 8종, 400개 풀, shape 4종)
     │   └── ScreenEffects.js(화면 플래시 + Hit Freeze)
     ├── data/
     │   └── config.js       (모든 게임 수치 통합)

@@ -6,7 +6,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance, normalize } from '../utils/MathUtils.js';
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.HELLFIRE;
 
@@ -85,6 +85,7 @@ export class Hellfire {
                 color: CFG.COLOR,
                 weaponId: this.id,
                 pierce: this.pierce,
+                hitColor: HIT_GLOW.COLORS.HELLFIRE,
             });
         }
     }

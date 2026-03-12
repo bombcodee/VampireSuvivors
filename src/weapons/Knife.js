@@ -5,7 +5,7 @@
  * - 레벨업하면 발사 수와 데미지 증가
  */
 import { distance, normalize } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class Knife {
     constructor() {
@@ -85,6 +85,7 @@ export class Knife {
                 size: this.size,
                 color: WEAPONS.KNIFE.COLOR,
                 weaponId: this.id,
+                hitColor: HIT_GLOW.COLORS.KNIFE,
             });
         }
     }

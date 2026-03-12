@@ -422,7 +422,7 @@ export const EVOLUTIONS = {
         DESCRIPTION: '5개 대상에게 연쇄 번개를 내린다',
         BASE_WEAPON: 'LIGHTNING_RING',
         REQUIRED_PASSIVE: 'MOVE_SPEED',
-        COLOR: '#ffd600',
+        COLOR: '#87ceeb',
         STATS: { damage: 25, cooldown: 0.8, count: 5, range: 450 },
     },
 };
@@ -499,17 +499,65 @@ export const UPGRADES = {
 
 // ===== 파티클 설정 =====
 export const PARTICLES = {
-    MAX_COUNT: 200,             // 최대 동시 파티클 수
+    MAX_COUNT: 400,             // 최대 동시 파티클 수 (히트 파티클 추가로 증설)
     DEATH_BURST: { count: 5, speed: 150, life: 0.4, size: 3, gravity: 80 },
     GEM_SPARKLE: { count: 3, speed: 50, life: 0.25, size: 2, gravity: 0, color: '#69f0ae' },
     LEVELUP_RING: { count: 8, speed: 200, life: 0.5, size: 4, gravity: 0, color: '#ffd54f' },
     EVOLUTION_FLASH: { count: 12, speed: 250, life: 0.6, size: 5, gravity: 0, color: '#ffd700' },
+    // === 히트 파티클 (무기별 피격 이펙트) ===
+    HIT_SPARK:    { count: 6, speed: 180, life: 0.3,  size: 4,   gravity: 0,   color: '#ffd700', shape: 'star' },   // MagicWand/HolyWand: 금색 십자 스파크
+    HIT_POISON:   { count: 5, speed: 100, life: 0.4,  size: 5,   gravity: -30, color: '#66bb6a', shape: 'ring' },   // Garlic/SoulEater: 초록 독 안개 (위로)
+    HIT_SLASH:    { count: 7, speed: 200, life: 0.25, size: 3.5, gravity: 100, color: '#ff1744', shape: 'line' },   // Whip/BloodyTear: 빨간 참격선 (아래로)
+    HIT_METAL:    { count: 5, speed: 220, life: 0.25, size: 3.5, gravity: 80,  color: '#cfd8dc', shape: 'line' },   // Knife/ThousandEdge: 금속 파편선
+    HIT_BUBBLE:   { count: 5, speed: 80,  life: 0.4,  size: 5.5, gravity: -20, color: '#42a5f5', shape: 'ring' },   // HolyWater/LaBorra: 파란 물거품 (위로)
+    HIT_HOLY:     { count: 5, speed: 120, life: 0.35, size: 4,   gravity: 0,   color: '#ce93d8', shape: 'star' },   // KingBible/UnholyVespers: 보라 빛 십자
+    HIT_FIRE:     { count: 7, speed: 160, life: 0.35, size: 5,   gravity: -50, color: '#ff7043', shape: 'circle' }, // FireWand/Hellfire: 불똥 (위로)
+    HIT_ELECTRIC: { count: 4, speed: 250, life: 0.2,  size: 3.5, gravity: 0,   color: '#87ceeb', shape: 'line' },   // LightningRing/ThunderLoop: 하늘색 전기선
 };
 
 // ===== 화면 효과 설정 =====
 export const SCREEN_FX = {
     FREEZE_DURATION: 0.03,      // Hit Freeze 지속 시간 (초)
     FLASH_ALPHA: 0.4,           // 플래시 최대 알파값
+};
+
+// ===== 적중 글로우 이펙트 설정 =====
+export const HIT_GLOW = {
+    DURATION: 0.15,             // 글로우 지속 시간 (초)
+    RADIUS_ADD: 4,              // 글로우 추가 반경 (px)
+    KILL_FREEZE: 0,             // 일반 적 처치 시 히트프리즈 (비활성: 스프라이트 없이 렉처럼 느껴짐)
+    BOSS_HIT_FREEZE: 0,        // 보스 피격 시 히트프리즈 (비활성)
+    BOSS_KILL_FREEZE: 0,       // 보스 처치 시 히트프리즈 (비활성)
+    // 무기별 적중 글로우 색상
+    COLORS: {
+        MAGIC_WAND: '#ffd700',      // 금색 (성스러운)
+        HOLY_WAND: '#ffd700',
+        GARLIC: '#66bb6a',          // 초록 (마늘 독)
+        SOUL_EATER: '#66bb6a',
+        WHIP: '#ff1744',            // 빨강 (피)
+        BLOODY_TEAR: '#ff1744',
+        KNIFE: '#cfd8dc',           // 은색
+        THOUSAND_EDGE: '#cfd8dc',
+        HOLY_WATER: '#42a5f5',      // 파랑 (성수)
+        LA_BORRA: '#42a5f5',
+        KING_BIBLE: '#ce93d8',      // 보라 (성서)
+        UNHOLY_VESPERS: '#ce93d8',
+        FIRE_WAND: '#ff7043',       // 주황 (불꽃)
+        HELLFIRE: '#ff7043',
+        LIGHTNING_RING: '#87ceeb',  // 하늘색 (번개)
+        THUNDER_LOOP: '#87ceeb',
+    },
+    // hitColor → 히트 파티클 프리셋 매핑
+    PARTICLE_MAP: {
+        '#ffd700': 'HIT_SPARK',     // MagicWand/HolyWand
+        '#66bb6a': 'HIT_POISON',    // Garlic/SoulEater
+        '#ff1744': 'HIT_SLASH',     // Whip/BloodyTear
+        '#cfd8dc': 'HIT_METAL',     // Knife/ThousandEdge
+        '#42a5f5': 'HIT_BUBBLE',    // HolyWater/LaBorra
+        '#ce93d8': 'HIT_HOLY',      // KingBible/UnholyVespers
+        '#ff7043': 'HIT_FIRE',      // FireWand/Hellfire
+        '#87ceeb': 'HIT_ELECTRIC',  // LightningRing/ThunderLoop
+    },
 };
 
 // ===== 사운드 설정 =====

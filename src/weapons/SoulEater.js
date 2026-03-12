@@ -5,7 +5,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance } from '../utils/MathUtils.js';
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.SOUL_EATER;
 
@@ -65,7 +65,10 @@ export class SoulEater {
             const dist = distance(playerX, playerY, enemy.x, enemy.y);
             if (dist > this.radius + enemy.radius) continue;
 
-            const isDead = enemy.takeDamage(finalDamage, playerX, playerY);
+            const isDead = enemy.takeDamage(finalDamage, playerX, playerY, HIT_GLOW.COLORS.SOUL_EATER);
+
+            // 히트 파티클
+            if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.SOUL_EATER, playerX, playerY);
 
             // 데미지 텍스트 (보라색)
             if (game && game.damageTexts) {
@@ -79,6 +82,9 @@ export class SoulEater {
                 totalHeal += this.lifesteal;
             } else if (game) {
                 game.sound.play('hit');
+                if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                    game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                }
             }
         }
 

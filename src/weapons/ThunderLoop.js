@@ -5,7 +5,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance } from '../utils/MathUtils.js';
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.THUNDER_LOOP;
 
@@ -85,7 +85,10 @@ export class ThunderLoop {
         for (const target of targets) {
             if (!target.active) continue;
 
-            const isDead = target.takeDamage(finalDamage, target.x, target.y - 50);
+            const isDead = target.takeDamage(finalDamage, target.x, target.y - 50, HIT_GLOW.COLORS.THUNDER_LOOP);
+
+            // 히트 파티클
+            if (game) game.particles.emitHit(target.x, target.y, HIT_GLOW.COLORS.THUNDER_LOOP, target.x, target.y - 50);
 
             // 번개 이펙트
             this._strikes.push({ x: target.x, y: target.y, timer: 0.25 });
@@ -109,6 +112,9 @@ export class ThunderLoop {
                 target.onDeath(game);
             } else if (game) {
                 game.sound.play('hit');
+                if (target.type === 'BOSS' || target.type === 'DRACULA') {
+                    game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                }
             }
         }
     }

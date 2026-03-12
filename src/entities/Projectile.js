@@ -35,6 +35,9 @@ export class Projectile {
         // ===== 관통 =====
         this.pierce = 1;        // 관통 횟수 (1이면 1마리 맞고 소멸)
         this.hitCount = 0;      // 현재까지 맞힌 횟수
+
+        // ===== 적중 이펙트 =====
+        this.hitColor = '';     // 적중 시 글로우 색상
     }
 
     /**
@@ -61,6 +64,7 @@ export class Projectile {
         this.color = config.color || '#ffab40';
         this.weaponId = config.weaponId || '';
         this.pierce = config.pierce || 1;
+        this.hitColor = config.hitColor || '';
 
         this.startX = config.x;
         this.startY = config.y;

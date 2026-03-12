@@ -5,7 +5,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance } from '../utils/MathUtils.js';
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.BLOODY_TEAR;
 
@@ -63,7 +63,10 @@ export class BloodyTear {
             if (dist > this.range + enemy.radius) continue;
 
             // 360도이므로 방향 체크 없음
-            const isDead = enemy.takeDamage(finalDamage, playerX, playerY);
+            const isDead = enemy.takeDamage(finalDamage, playerX, playerY, HIT_GLOW.COLORS.BLOODY_TEAR);
+
+            // 히트 파티클
+            if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.BLOODY_TEAR, playerX, playerY);
 
             // 데미지 텍스트 (빨간색)
             if (game && game.damageTexts) {
@@ -76,6 +79,9 @@ export class BloodyTear {
                 totalHeal += this.lifesteal;
             } else if (game) {
                 game.sound.play('hit');
+                if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                    game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                }
             }
         }
 

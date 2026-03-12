@@ -5,7 +5,7 @@
  * - Vampire Survivors의 "Magic Wand"와 동일한 컨셉
  */
 import { distance, normalize } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class MagicWand {
     constructor() {
@@ -120,6 +120,7 @@ export class MagicWand {
                 size: this.size,
                 color: WEAPONS.MAGIC_WAND.COLOR,
                 weaponId: this.id,
+                hitColor: HIT_GLOW.COLORS.MAGIC_WAND,
             });
         }
     }

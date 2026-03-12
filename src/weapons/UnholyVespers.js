@@ -6,7 +6,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance } from '../utils/MathUtils.js';
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.UNHOLY_VESPERS;
 
@@ -69,7 +69,10 @@ export class UnholyVespers {
                 if (dist < bookRadius + enemy.radius) {
                     this._hitCooldowns.set(hitKey, CFG.HIT_COOLDOWN);
 
-                    const isDead = enemy.takeDamage(finalDamage, bookX, bookY);
+                    const isDead = enemy.takeDamage(finalDamage, bookX, bookY, HIT_GLOW.COLORS.UNHOLY_VESPERS);
+
+                    // 히트 파티클
+                    if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.UNHOLY_VESPERS, bookX, bookY);
 
                     if (game && game.damageTexts) {
                         const text = game.damageTexts.get();
@@ -80,6 +83,9 @@ export class UnholyVespers {
                         enemy.onDeath(game);
                     } else if (game) {
                         game.sound.play('hit');
+                        if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                            game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                        }
                     }
                 }
             }

@@ -6,7 +6,7 @@
  * - 레벨업하면 데미지, 범위, 넉백 증가
  */
 import { distance, normalize } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class Whip {
     constructor() {
@@ -75,7 +75,10 @@ export class Whip {
             if (!isFront) continue;
 
             // 데미지 + 넉백
-            const isDead = enemy.takeDamage(finalDamage, playerX, playerY);
+            const isDead = enemy.takeDamage(finalDamage, playerX, playerY, HIT_GLOW.COLORS.WHIP);
+
+            // 히트 파티클
+            if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.WHIP, playerX, playerY);
 
             // 데미지 텍스트
             if (game && game.damageTexts) {
@@ -88,6 +91,9 @@ export class Whip {
                 enemy.onDeath(game);
             } else if (game) {
                 game.sound.play('hit');
+                if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                    game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                }
             }
         }
     }

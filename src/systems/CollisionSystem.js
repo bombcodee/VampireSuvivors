@@ -6,7 +6,7 @@
  * - 원형 충돌 판정(Circle Collision)을 사용한다
  */
 import { distance } from '../utils/MathUtils.js';
-import { CHEST } from '../data/config.js';
+import { CHEST, HIT_GLOW } from '../data/config.js';
 
 export class CollisionSystem {
     /**
@@ -38,8 +38,11 @@ export class CollisionSystem {
                 // 원형 충돌 판정: 두 원의 중심 거리 < 두 반경의 합
                 const dist = distance(proj.x, proj.y, enemy.x, enemy.y);
                 if (dist < proj.radius + enemy.radius) {
-                    // 적에게 데미지
-                    const isDead = enemy.takeDamage(proj.damage, proj.x, proj.y);
+                    // 적에게 데미지 (무기별 글로우 색상 전달)
+                    const isDead = enemy.takeDamage(proj.damage, proj.x, proj.y, proj.hitColor);
+
+                    // 히트 파티클 (무기별 피격 이펙트)
+                    game.particles.emitHit(enemy.x, enemy.y, proj.hitColor, proj.x, proj.y);
 
                     // 데미지 텍스트 표시
                     this._spawnDamageText(game, enemy.x, enemy.y - enemy.radius, proj.damage);
@@ -49,6 +52,10 @@ export class CollisionSystem {
                         enemy.onDeath(game);
                     } else {
                         game.sound.play('hit');
+                        // 보스/드라큘라 피격 시 히트프리즈
+                        if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                            game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                        }
                     }
 
                     // 투사체 관통 체크

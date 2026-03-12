@@ -5,7 +5,7 @@
  * - 투사체 없이 즉시 데미지
  */
 import { distance } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class LightningRing {
     constructor() {
@@ -69,7 +69,10 @@ export class LightningRing {
             const target = inRange[Math.floor(Math.random() * inRange.length)];
             if (!target.active) continue;
 
-            const isDead = target.takeDamage(finalDamage, target.x, target.y - 50);
+            const isDead = target.takeDamage(finalDamage, target.x, target.y - 50, HIT_GLOW.COLORS.LIGHTNING_RING);
+
+            // 히트 파티클
+            if (game) game.particles.emitHit(target.x, target.y, HIT_GLOW.COLORS.LIGHTNING_RING, target.x, target.y - 50);
 
             // 번개 이펙트 추가
             this._strikes.push({ x: target.x, y: target.y, timer: 0.2 });
@@ -77,7 +80,7 @@ export class LightningRing {
             // 데미지 텍스트
             if (game && game.damageTexts) {
                 const text = game.damageTexts.get();
-                text.init(target.x, target.y - target.radius, finalDamage, '#ffeb3b');
+                text.init(target.x, target.y - target.radius, finalDamage, '#87ceeb');
             }
 
             // 적 사망 처리
@@ -85,6 +88,9 @@ export class LightningRing {
                 target.onDeath(game);
             } else if (game) {
                 game.sound.play('hit');
+                if (target.type === 'BOSS' || target.type === 'DRACULA') {
+                    game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                }
             }
         }
     }
@@ -101,9 +107,9 @@ export class LightningRing {
             ctx.globalAlpha = alpha;
 
             // 번개 기둥 (위에서 아래로)
-            ctx.strokeStyle = '#ffeb3b';
+            ctx.strokeStyle = '#87ceeb';
             ctx.lineWidth = 3;
-            ctx.shadowColor = '#ffeb3b';
+            ctx.shadowColor = '#87ceeb';
             ctx.shadowBlur = 15;
 
             ctx.beginPath();
@@ -119,7 +125,7 @@ export class LightningRing {
             // 착탄 원형 플래시
             ctx.beginPath();
             ctx.arc(screen.x, screen.y, 15 * alpha, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 235, 59, 0.4)';
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.4)';
             ctx.fill();
 
             ctx.restore();

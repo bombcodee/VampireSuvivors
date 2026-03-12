@@ -6,7 +6,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance } from '../utils/MathUtils.js';
-import { EVOLUTIONS } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
 
 const CFG = EVOLUTIONS.LA_BORRA;
 
@@ -59,7 +59,10 @@ export class LaBorra {
             const dist = distance(playerX, playerY, enemy.x, enemy.y);
             if (dist > this.radius + enemy.radius) continue;
 
-            const isDead = enemy.takeDamage(finalDamage, playerX, playerY);
+            const isDead = enemy.takeDamage(finalDamage, playerX, playerY, HIT_GLOW.COLORS.LA_BORRA);
+
+            // 히트 파티클
+            if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.LA_BORRA, playerX, playerY);
 
             if (game && game.damageTexts) {
                 const text = game.damageTexts.get();
@@ -70,6 +73,9 @@ export class LaBorra {
                 enemy.onDeath(game);
             } else if (game) {
                 game.sound.play('hit');
+                if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                    game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                }
             }
         }
     }

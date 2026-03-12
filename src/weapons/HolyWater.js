@@ -5,7 +5,7 @@
  * - 장판은 일정 시간 후 소멸한다
  */
 import { distance } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class HolyWater {
     constructor() {
@@ -83,7 +83,10 @@ export class HolyWater {
 
             const dist = distance(pool.x, pool.y, enemy.x, enemy.y);
             if (dist < pool.radius + enemy.radius) {
-                const isDead = enemy.takeDamage(finalDamage, pool.x, pool.y);
+                const isDead = enemy.takeDamage(finalDamage, pool.x, pool.y, HIT_GLOW.COLORS.HOLY_WATER);
+
+                // 히트 파티클
+                if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.HOLY_WATER, pool.x, pool.y);
 
                 // 데미지 텍스트
                 if (game && game.damageTexts) {
@@ -96,6 +99,9 @@ export class HolyWater {
                     enemy.onDeath(game);
                 } else if (game) {
                     game.sound.play('hit');
+                    if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                        game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                    }
                 }
             }
         }

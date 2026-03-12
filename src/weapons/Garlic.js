@@ -6,7 +6,7 @@
  * - Vampire Survivors의 "Garlic"과 동일한 컨셉
  */
 import { distance } from '../utils/MathUtils.js';
-import { WEAPONS } from '../data/config.js';
+import { WEAPONS, HIT_GLOW } from '../data/config.js';
 
 export class Garlic {
     constructor() {
@@ -94,7 +94,10 @@ export class Garlic {
             const dist = distance(playerX, playerY, enemy.x, enemy.y);
             if (dist < this.radius + enemy.radius) {
                 // 데미지 (playerX, playerY를 넘겨서 넉백 방향 계산)
-                const isDead = enemy.takeDamage(finalDamage, playerX, playerY);
+                const isDead = enemy.takeDamage(finalDamage, playerX, playerY, HIT_GLOW.COLORS.GARLIC);
+
+                // 히트 파티클
+                if (game) game.particles.emitHit(enemy.x, enemy.y, HIT_GLOW.COLORS.GARLIC, playerX, playerY);
 
                 // 데미지 텍스트 표시
                 if (game && game.damageTexts) {
@@ -107,6 +110,10 @@ export class Garlic {
                     enemy.onDeath(game);
                 } else if (game) {
                     game.sound.play('hit');
+                    // 보스/드라큘라 피격 시 히트프리즈
+                    if (enemy.type === 'BOSS' || enemy.type === 'DRACULA') {
+                        game.screenFx.freeze(HIT_GLOW.BOSS_HIT_FREEZE);
+                    }
                 }
             }
         }
