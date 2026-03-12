@@ -337,8 +337,8 @@ export class Game {
         // 게임 시간 증가
         this.gameTime += dt;
 
-        // 30분 자동 승리 제거 — 드라큘라를 처치해야 승리
-        // (EnemySpawner가 30분에 드라큘라를 스폰한다)
+        // 자동 승리 제거 — 드라큘라를 처치해야 승리
+        // (EnemySpawner가 GAME_DURATION 시점에 드라큘라를 스폰한다)
 
         // 카메라 업데이트
         this.camera.update(dt);

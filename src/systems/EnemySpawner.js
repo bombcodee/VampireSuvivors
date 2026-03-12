@@ -12,7 +12,8 @@ export class EnemySpawner {
         this.spawnTimer = 0;            // 스폰 쿨타임 타이머
         this.currentWaveIndex = 0;      // 현재 웨이브 인덱스
         this.bossSpawned = false;       // 보스 스폰 여부
-        this._lastBossTime = 0;         // 마지막 보스 스폰 시간
+        this._lastBossTime = 0;         // 마지막 보스 스폰 기준 시간
+        this.totalBossSpawned = 0;      // 보스 총 스폰 횟수 (디버그 표시용)
         this._draculaWarned = false;    // 드라큘라 경고 표시 여부
         this._draculaSpawned = false;   // 드라큘라 스폰 여부
         this._draculaWarnTimer = 0;     // 드라큘라 경고음 반복 타이머 (5초 간격)
@@ -42,7 +43,7 @@ export class EnemySpawner {
             }
         }
 
-        // 드라큘라 스폰 체크 (30분)
+        // 드라큘라 스폰 체크 (GAME_DURATION = 20분)
         if (!this._draculaSpawned && gameTime >= SPAWNER.DRACULA_SPAWN_TIME) {
             this._spawnDracula(player, enemyPool, game);
             this._draculaSpawned = true;
@@ -60,8 +61,28 @@ export class EnemySpawner {
 
         const wave = SPAWNER.WAVES[this.currentWaveIndex];
 
-        // 최대 적 수 초과 시 스폰하지 않음
+        // 보스 스폰 체크 (MAX_ENEMIES와 무관하게 항상 실행)
+        // 첫 등장 + 이후 반복, 기준 시간 누적 방식
+        if (!this.bossSpawned && gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
+            this._spawnBoss(player, enemyPool, gameTime);
+            this.bossSpawned = true;
+            this.totalBossSpawned++;
+            this._lastBossTime = SPAWNER.BOSS_SPAWN_TIME;
+            if (game) game.sound.play('bosswarn');
+        }
+        if (this.bossSpawned && SPAWNER.BOSS_RESPAWN_INTERVAL > 0) {
+            // while 루프: 타임스킵으로 여러 간격이 지났으면 모두 스폰
+            while (gameTime - this._lastBossTime >= SPAWNER.BOSS_RESPAWN_INTERVAL) {
+                this._lastBossTime += SPAWNER.BOSS_RESPAWN_INTERVAL;
+                this._spawnBoss(player, enemyPool, gameTime);
+                this.totalBossSpawned++;
+                if (game) game.sound.play('bosswarn');
+            }
+        }
+
+        // 최대 적 수 초과 시 일반 적 스폰하지 않음 (보스는 위에서 처리)
         if (enemyPool.getActive().length >= SPAWNER.MAX_ENEMIES) {
+            this._despawnFarEnemies(player, enemyPool);
             return;
         }
 
@@ -74,20 +95,6 @@ export class EnemySpawner {
 
             for (let i = 0; i < wave.spawnCount; i++) {
                 this._spawnEnemy(player, enemyPool, wave.types, gameTime);
-            }
-        }
-
-        // 보스 스폰 체크 (첫 등장 + 이후 반복)
-        if (!this.bossSpawned && gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
-            this._spawnBoss(player, enemyPool, gameTime);
-            this.bossSpawned = true;
-            this._lastBossTime = gameTime;
-            if (game) game.sound.play('bosswarn');
-        } else if (this.bossSpawned && SPAWNER.BOSS_RESPAWN_INTERVAL > 0) {
-            if (gameTime - this._lastBossTime >= SPAWNER.BOSS_RESPAWN_INTERVAL) {
-                this._spawnBoss(player, enemyPool, gameTime);
-                this._lastBossTime = gameTime;
-                if (game) game.sound.play('bosswarn');
             }
         }
 
@@ -226,6 +233,7 @@ export class EnemySpawner {
         this.currentWaveIndex = 0;
         this.bossSpawned = false;
         this._lastBossTime = 0;
+        this.totalBossSpawned = 0;
         this._draculaWarned = false;
         this._draculaSpawned = false;
         this._draculaWarnTimer = 0;

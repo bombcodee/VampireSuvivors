@@ -40,7 +40,7 @@ export class HUD {
         // 보유 무기 목록 (좌하단)
         this._drawWeaponList(ctx, player, game.canvas.height);
 
-        // 드라큘라 경고/HP바 (30분 근처에서만 표시)
+        // 드라큘라 경고/HP바 (GAME_DURATION 근처에서만 표시)
         this._drawDraculaWarning(ctx, game, canvasW);
     }
 

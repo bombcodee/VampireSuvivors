@@ -82,7 +82,7 @@ export const ENEMY = {
         COLOR: '#ff1744',       // 진한 빨강
         EXP_VALUE: 50,
     },
-    // 최종 보스 (드라큘라) — 30분에 등장, 처치해야 승리
+    // 최종 보스 (드라큘라) — 20분에 등장, 처치해야 승리
     DRACULA: {
         HP: 6000,               // 일반 보스(1500)의 4배
         SPEED: 45,              // 보스(40)보다 약간 빠름
@@ -100,28 +100,37 @@ export const SPAWNER = {
     MIN_INTERVAL: 0.3,          // 최소 스폰 간격 (초)
     MAX_ENEMIES: 200,           // 최대 동시 적 수
     DESPAWN_DISTANCE: 800,      // 이 거리 이상 멀어지면 디스폰 (px)
-    // 시간대별 스폰 설정 (초 단위) — 10분(600초) 전체 커버
+    // 시간대별 스폰 설정 (초 단위) — 20분(1200초) 전체 커버
+    // 난이도 곡선: 초반 완만 → 중반 가속 → 후반 극한 → 드라큘라 직전 최고조
     WAVES: [
-        { time: 0,   types: ['BAT'],                spawnCount: 1, interval: 1.5 },
-        { time: 30,  types: ['BAT'],                spawnCount: 2, interval: 1.2 },
-        { time: 60,  types: ['BAT', 'ZOMBIE'],      spawnCount: 2, interval: 1.0 },
-        { time: 120, types: ['BAT', 'ZOMBIE'],      spawnCount: 3, interval: 0.8 },
-        { time: 180, types: ['ZOMBIE', 'SKELETON'], spawnCount: 3, interval: 0.6 },
-        { time: 240, types: ['ZOMBIE', 'SKELETON'], spawnCount: 4, interval: 0.5 },
-        { time: 300, types: ['SKELETON'],           spawnCount: 5, interval: 0.4 },
-        // 후반 웨이브 (보스 이후, 더 어려워짐)
-        { time: 360, types: ['SKELETON', 'ZOMBIE'], spawnCount: 6, interval: 0.35 },
-        { time: 420, types: ['SKELETON'],           spawnCount: 7, interval: 0.3 },
-        { time: 480, types: ['SKELETON'],           spawnCount: 8, interval: 0.25 },
-        { time: 540, types: ['SKELETON'],           spawnCount: 10, interval: 0.2 },
+        // === 초반: 입문 (0~2분) ===
+        { time: 0,    types: ['BAT'],                spawnCount: 1,  interval: 1.5 },   // 0:00 입문
+        { time: 30,   types: ['BAT'],                spawnCount: 2,  interval: 1.2 },   // 0:30 적응
+        // === 초중반: 긴장감 시작 (2~4분) ===
+        { time: 60,   types: ['BAT', 'ZOMBIE'],      spawnCount: 2,  interval: 1.0 },   // 1:00 좀비 등장
+        { time: 120,  types: ['BAT', 'ZOMBIE'],      spawnCount: 3,  interval: 0.8 },   // 2:00 압박 증가
+        // === 중반: 본격 전투 (4~8분) ===
+        { time: 180,  types: ['ZOMBIE', 'SKELETON'], spawnCount: 3,  interval: 0.7 },   // 3:00 스켈레톤 등장
+        { time: 240,  types: ['ZOMBIE', 'SKELETON'], spawnCount: 4,  interval: 0.6 },   // 4:00 첫 보스 구간
+        { time: 300,  types: ['SKELETON'],           spawnCount: 4,  interval: 0.55 },  // 5:00 강적 중심
+        { time: 360,  types: ['SKELETON', 'ZOMBIE'], spawnCount: 5,  interval: 0.5 },   // 6:00 밀도 상승
+        // === 후반: 고밀도 (8~14분) ===
+        { time: 450,  types: ['SKELETON'],           spawnCount: 5,  interval: 0.45 },  // 7:30 후반 진입
+        { time: 540,  types: ['SKELETON'],           spawnCount: 6,  interval: 0.4 },   // 9:00 고밀도
+        { time: 630,  types: ['SKELETON'],           spawnCount: 7,  interval: 0.35 },  // 10:30 극한 시작
+        { time: 720,  types: ['SKELETON'],           spawnCount: 8,  interval: 0.3 },   // 12:00 생존 테스트
+        // === 극한: 최고조 (14~20분) ===
+        { time: 840,  types: ['SKELETON'],           spawnCount: 9,  interval: 0.25 },  // 14:00 극한
+        { time: 960,  types: ['SKELETON'],           spawnCount: 10, interval: 0.22 },  // 16:00 최고조
+        { time: 1080, types: ['SKELETON'],           spawnCount: 12, interval: 0.2 },   // 18:00 드라큘라 직전
     ],
-    BOSS_SPAWN_TIME: 300,       // 보스 첫 등장 시간 (5분 = 300초)
-    BOSS_RESPAWN_INTERVAL: 120, // 보스 재등장 간격 (2분 = 120초)
-    DRACULA_WARNING_TIME: 1770, // 드라큘라 경고 시점 (29분 30초)
-    DRACULA_SPAWN_TIME: 1800,   // 드라큘라 등장 시점 (30분 = GAME_DURATION)
+    BOSS_SPAWN_TIME: 240,       // 보스 첫 등장 시간 (4분 = 240초)
+    BOSS_RESPAWN_INTERVAL: 90,  // 보스 재등장 간격 (1.5분 = 90초)
+    DRACULA_WARNING_TIME: 1170, // 드라큘라 경고 시점 (19분 30초)
+    DRACULA_SPAWN_TIME: 1200,   // 드라큘라 등장 시점 (20분 = GAME_DURATION)
     DRACULA_WARN_INTERVAL: 5,   // 드라큘라 경고음 반복 간격 (초)
-    // 시간 경과에 따른 적 스탯 스케일링 (5분 이후 적용)
-    SCALING_START_TIME: 300,    // 스케일링 시작 시간 (초)
+    // 시간 경과에 따른 적 스탯 스케일링 (4분 이후 적용)
+    SCALING_START_TIME: 240,    // 스케일링 시작 시간 (초)
     SCALING_HP_PER_MIN: 0.15,   // 분당 HP 증가율 (15%)
     SCALING_DMG_PER_MIN: 0.10,  // 분당 데미지 증가율 (10%)
     SCALING_SPD_PER_MIN: 0.12,  // 분당 이동속도 증가율 (12%)
@@ -513,7 +522,7 @@ export const SOUNDS = {
 
 // ===== 게임 전체 설정 =====
 export const GAME = {
-    GAME_DURATION: 1800,        // 게임 제한 시간 (30분 = 1800초)
+    GAME_DURATION: 1200,        // 게임 제한 시간 (20분 = 1200초)
     BACKGROUND_GRID_SIZE: 64,   // 배경 격자 크기 (px)
     BACKGROUND_COLOR: '#1a1a2e',
     BACKGROUND_LINE_COLOR: '#16213e',

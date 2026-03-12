@@ -112,7 +112,7 @@ export class DebugMode {
             game.onPlayerDeath();
         }
 
-        // N: 드라큘라 즉시 소환 (30분으로 점프 → 드라큘라 스폰 트리거)
+        // N: 드라큘라 즉시 소환 (GAME_DURATION으로 점프 → 드라큘라 스폰 트리거)
         if (input.isKeyPressed('KeyN')) {
             game.gameTime = GAME.GAME_DURATION;
         }
@@ -191,28 +191,23 @@ export class DebugMode {
         let y = 100;
         const lineHeight = 16;
 
-        // 패널 높이를 미리 계산 (적 타입 수에 따라 가변)
+        // 패널 높이를 미리 계산
         const waveIndex = game.enemySpawner.currentWaveIndex;
         const wave = SPAWNER.WAVES[waveIndex];
         const totalWaves = SPAWNER.WAVES.length;
-        const shownTypes = new Set(wave.types);
-        if (game.enemySpawner.bossSpawned || game.gameTime >= SPAWNER.BOSS_SPAWN_TIME) {
-            shownTypes.add('BOSS');
-        }
-        if (game.enemySpawner._draculaSpawned || game.gameTime >= SPAWNER.DRACULA_SPAWN_TIME) {
-            shownTypes.add('DRACULA');
-        }
+        // 모든 적 타입을 항상 표시 (생존 수 0이어도 표시)
+        const allTypes = ['BAT', 'ZOMBIE', 'SKELETON', 'BOSS', 'DRACULA'];
         // 에러 로그 줄 수 계산 (최대 3개 + 헤더 1줄)
         const errors = ErrorGuard.getErrors();
         const errorLines = errors.length > 0 ? Math.min(errors.length, 3) + 1 : 0;
-        const panelLines = 13 + shownTypes.size + errorLines;
+        const panelLines = 13 + allTypes.length + errorLines;
 
         ctx.save();
         ctx.globalAlpha = 0.6;
 
         // 반투명 배경 패널 (흐리게)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-        ctx.fillRect(x - 5, y - 14, 260, lineHeight * panelLines + 14);
+        ctx.fillRect(x - 5, y - 14, 340, lineHeight * panelLines + 14);
 
         ctx.globalAlpha = 0.85;
         ctx.font = `12px ${UI.FONT_FAMILY}`;
@@ -282,15 +277,74 @@ export class DebugMode {
         ctx.fillText('[Enemy Stats]', x, y);
         y += lineHeight;
 
-        for (const type of shownTypes) {
+        // 타입별 생존 수 집계
+        const typeCounts = {};
+        for (const enemy of game.enemies.getActive()) {
+            typeCounts[enemy.type] = (typeCounts[enemy.type] || 0) + 1;
+        }
+
+        // 현재 웨이브에 포함된 적 타입 (스폰 중 판별용)
+        const spawningTypes = new Set(wave.types);
+        const spawner = game.enemySpawner;
+        const gt = game.gameTime;
+
+        for (const type of allTypes) {
             const stats = ENEMY[type];
-            if (stats) {
-                ctx.fillStyle = stats.COLOR || '#ffffff';
-                ctx.fillText(`${type}`, x, y);
-                ctx.fillStyle = '#b0bec5';
-                ctx.fillText(`HP:${stats.HP}  SPD:${stats.SPEED}  DMG:${stats.DAMAGE}`, x + 75, y);
-                y += lineHeight;
+            if (!stats) continue;
+
+            const count = typeCounts[type] || 0;
+
+            // ● 스폰 상태 표시: 초록=스폰중, 빨강=중단, 노랑=조건부
+            let dotColor;
+            if (type === 'BOSS') {
+                dotColor = spawner.bossSpawned ? '#69f0ae' : '#ffd54f';
+            } else if (type === 'DRACULA') {
+                dotColor = spawner._draculaSpawned ? '#69f0ae' : '#ffd54f';
+            } else {
+                dotColor = spawningTypes.has(type) ? '#69f0ae' : '#ef5350';
             }
+            // 드라큘라 스폰 후 모든 일반 적/보스 스폰 중단
+            if (spawner._draculaSpawned && type !== 'DRACULA') {
+                dotColor = '#ef5350';
+            }
+
+            ctx.fillStyle = dotColor;
+            ctx.fillText('●', x, y);
+
+            ctx.fillStyle = stats.COLOR || '#ffffff';
+            ctx.fillText(`${type}`, x + 12, y);
+            ctx.fillStyle = '#b0bec5';
+            ctx.fillText(`HP:${stats.HP}  SPD:${stats.SPEED}  DMG:${stats.DAMAGE}`, x + 87, y);
+
+            // 카운트 + 추가 정보 (타이머 x좌표 통일: x+295)
+            const countX = x + 245;
+            const timerX = x + 280;
+            ctx.fillStyle = '#ffd54f';
+            if (type === 'BOSS') {
+                // (생존/총스폰) ↻남은시간
+                const total = spawner.totalBossSpawned;
+                ctx.fillText(`(${count}/${total})`, countX, y);
+                if (spawner.bossSpawned && !spawner._draculaSpawned) {
+                    const nextIn = Math.max(0, SPAWNER.BOSS_RESPAWN_INTERVAL - (gt - spawner._lastBossTime));
+                    ctx.fillStyle = '#81d4fa';
+                    ctx.fillText(`↻${this._fmtTime(nextIn)}`, timerX, y);
+                } else if (!spawner.bossSpawned) {
+                    const untilFirst = Math.max(0, SPAWNER.BOSS_SPAWN_TIME - gt);
+                    ctx.fillStyle = '#81d4fa';
+                    ctx.fillText(`in ${this._fmtTime(untilFirst)}`, timerX, y);
+                }
+            } else if (type === 'DRACULA') {
+                ctx.fillText(`(${count})`, countX, y);
+                if (!spawner._draculaSpawned) {
+                    const untilSpawn = Math.max(0, SPAWNER.DRACULA_SPAWN_TIME - gt);
+                    ctx.fillStyle = '#81d4fa';
+                    ctx.fillText(`in ${this._fmtTime(untilSpawn)}`, timerX, y);
+                }
+            } else {
+                ctx.fillText(`(${count})`, countX, y);
+            }
+
+            y += lineHeight;
         }
 
         // 에러 로그 (있을 때만 표시, 빨간색)
@@ -558,6 +612,21 @@ export class DebugMode {
             'BOSS'
         );
         game.sound.play('bosswarn');
+    }
+
+    /**
+     * 초 단위를 m:ss 또는 ss 형식으로 변환한다 (디버그 표시용)
+     * @param {number} seconds - 초
+     * @returns {string} 포맷된 시간 문자열
+     */
+    _fmtTime(seconds) {
+        const s = Math.ceil(seconds);
+        if (s >= 60) {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        }
+        return `${s}s`;
     }
 
     /**
