@@ -111,7 +111,12 @@
 - 드라큘라 디스폰 버그 수정 + 경고음/보스 BGM 추가
 
 ### Planned (예정)
+- ~~사운드: SoundManager (Web Audio API), 효과음 8종~~ ✅ SFX-001, SFX-003 완료
 - BGM 1곡 (로열티 프리)
 - 효과음 퀄리티 개선 (SFX-004)
+- ~~VFX: ParticlePool, ScreenEffects (Hit Freeze, Screen Flash)~~ ✅ VFX-001, VFX-002 완료
+- ~~VFX: 무기별 히트 이펙트 (글로우 + 파티클)~~ ✅ VFX-003 완료
+- ~~VFX: 무기 데미지 텍스트 색상 정리~~ ✅ VFX-004 완료
 - VFX: 흡혈 시각 표시
+- ~~스테이지: 30분 타이머 + 최종 보스, 난이도 곡선 세분화~~ ✅ STG-001, STG-002 완료
 - UI: PauseUI 영구 업그레이드 보너스 표시
