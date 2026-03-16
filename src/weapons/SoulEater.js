@@ -5,7 +5,7 @@
  * - 레벨업 없음 (진화 무기는 최종 형태)
  */
 import { distance } from '../utils/MathUtils.js';
-import { EVOLUTIONS, HIT_GLOW } from '../data/config.js';
+import { EVOLUTIONS, HIT_GLOW, LIFESTEAL_VFX } from '../data/config.js';
 
 const CFG = EVOLUTIONS.SOUL_EATER;
 
@@ -88,12 +88,15 @@ export class SoulEater {
             }
         }
 
-        // 흡혈 적용 (최대 HP 제한)
+        // 흡혈 적용 (Player.heal()로 VFX 자동 활성화)
         if (totalHeal > 0 && game) {
-            game.player.hp = Math.min(
-                game.player.hp + totalHeal,
-                game.player.maxHp
-            );
+            const actualHeal = game.player.heal(totalHeal);
+            // A: 힐 텍스트 (+N) 플레이어 머리 위에 표시
+            if (actualHeal > 0 && game.damageTexts) {
+                const text = game.damageTexts.get();
+                text.init(game.player.x, game.player.y - game.player.radius - 10,
+                    `${LIFESTEAL_VFX.TEXT_PREFIX}${actualHeal}`, LIFESTEAL_VFX.TEXT_COLOR);
+            }
         }
     }
 

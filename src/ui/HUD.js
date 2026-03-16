@@ -3,7 +3,7 @@
  * - 게임 플레이 중 화면에 항상 표시되는 정보
  * - 체력바, 경험치바, 레벨, 타이머, 킬 수, 보유 무기 등
  */
-import { UI, SPAWNER } from '../data/config.js';
+import { UI, SPAWNER, LIFESTEAL_VFX } from '../data/config.js';
 
 export class HUD {
     constructor() {
@@ -85,7 +85,31 @@ export class HUD {
 
         ctx.fillRect(x, y, width * Math.max(0, hpRatio), height);
 
-        // 테두리
+        // C: 회복 구간 하이라이트 (밝은 초록색으로 회복된 만큼 표시)
+        if (player.healHighlightTimer > 0 && player.healHighlight > 0) {
+            const highlightAlpha = player.healHighlightTimer / LIFESTEAL_VFX.HEAL_HIGHLIGHT_DURATION;
+            const healWidth = width * player.healHighlight;
+            const healStart = width * Math.max(0, hpRatio) - healWidth;
+            ctx.fillStyle = LIFESTEAL_VFX.HEAL_HIGHLIGHT_COLOR;
+            ctx.globalAlpha = highlightAlpha * 0.7;
+            ctx.fillRect(x + Math.max(0, healStart), y, healWidth, height);
+            ctx.globalAlpha = 1.0;
+        }
+
+        // B: HP바 플래시 (흡혈 시 테두리 초록 발광)
+        if (player.healFlashTimer > 0) {
+            const flashAlpha = player.healFlashTimer / LIFESTEAL_VFX.HP_FLASH_DURATION;
+            ctx.strokeStyle = LIFESTEAL_VFX.HP_FLASH_COLOR;
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = flashAlpha;
+            ctx.shadowColor = LIFESTEAL_VFX.HP_FLASH_COLOR;
+            ctx.shadowBlur = 6 * flashAlpha;
+            ctx.strokeRect(x, y, width, height);
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1.0;
+        }
+
+        // 테두리 (기본)
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1;
         ctx.strokeRect(x, y, width, height);

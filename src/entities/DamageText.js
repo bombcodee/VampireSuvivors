@@ -26,7 +26,7 @@ export class DamageText {
     init(x, y, damage, color = '#ffffff') {
         this.x = x;
         this.y = y;
-        this.text = Math.floor(damage).toString();
+        this.text = typeof damage === 'string' ? damage : Math.floor(damage).toString();
         this.color = color;
         this.lifetime = this.maxLifetime;
         this.active = true;

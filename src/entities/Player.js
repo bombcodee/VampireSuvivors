@@ -5,7 +5,7 @@
  * - 무기를 장착하고 자동으로 공격
  * - 경험치를 모아 레벨업
  */
-import { PLAYER, CHARACTERS } from '../data/config.js';
+import { PLAYER, CHARACTERS, LIFESTEAL_VFX } from '../data/config.js';
 import { ErrorGuard } from '../utils/ErrorGuard.js';
 
 export class Player {
@@ -56,6 +56,12 @@ export class Player {
         this.killCount = 0;
         this.totalExp = 0;
 
+        // ===== 흡혈 VFX =====
+        this.healGlowTimer = 0;         // 흡혈 글로우 남은 시간 (E)
+        this.healFlashTimer = 0;        // HP바 플래시 남은 시간 (B)
+        this.healHighlight = 0;         // HP바 회복 구간 비율 (C)
+        this.healHighlightTimer = 0;    // 회복 구간 하이라이트 남은 시간 (C)
+
         // ===== 렌더링 =====
         this.facingRight = true;    // 바라보는 방향 (스프라이트 반전용)
         this.flashTimer = 0;        // 피격 시 깜빡임 타이머
@@ -101,6 +107,14 @@ export class Player {
         if (this.flashTimer > 0) {
             this.flashTimer -= dt;
         }
+
+        // 흡혈 VFX 타이머 감소
+        if (this.healGlowTimer > 0) this.healGlowTimer -= dt;
+        if (this.healFlashTimer > 0) this.healFlashTimer -= dt;
+        if (this.healHighlightTimer > 0) {
+            this.healHighlightTimer -= dt;
+            if (this.healHighlightTimer <= 0) this.healHighlight = 0;
+        }
     }
 
     /**
@@ -129,9 +143,34 @@ export class Player {
     render(ctx, camera) {
         const screen = camera.worldToScreen(this.x, this.y);
 
+        // E: 흡혈 글로우 (초록 발광) — 무적 깜빡임과 무관하게 항상 표시
+        if (this.healGlowTimer > 0) {
+            const glowAlpha = this.healGlowTimer / LIFESTEAL_VFX.GLOW_DURATION;
+
+            ctx.save();
+            // 외곽 글로우 (shadowBlur로 발광 효과)
+            ctx.shadowColor = LIFESTEAL_VFX.GLOW_COLOR;
+            ctx.shadowBlur = LIFESTEAL_VFX.GLOW_RADIUS_ADD * glowAlpha * 3;
+
+            // 글로우 원 (몸체 뒤에, 강화된 가시성)
+            ctx.fillStyle = `rgba(105, 240, 174, ${0.35 * glowAlpha})`;
+            ctx.beginPath();
+            ctx.arc(screen.x, screen.y, this.radius + LIFESTEAL_VFX.GLOW_RADIUS_ADD * glowAlpha, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 내부 글로우 (더 밝게, 코어 느낌)
+            ctx.fillStyle = `rgba(105, 240, 174, ${0.2 * glowAlpha})`;
+            ctx.beginPath();
+            ctx.arc(screen.x, screen.y, this.radius * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+
         // 무적 중 깜빡임 효과 (0.1초 간격으로 보이기/숨기기)
         if (this.isInvincible && Math.floor(this.invincibleTimer * 10) % 2 === 0) {
-            return; // 이 프레임은 안 그림 (깜빡)
+            return; // 이 프레임은 안 그림 (깜빡) — 글로우는 이미 그려짐
         }
 
         ctx.save();
@@ -185,6 +224,30 @@ export class Player {
 
         // 사망 여부 반환
         return this.hp <= 0;
+    }
+
+    /**
+     * 체력을 회복한다 (흡혈 등)
+     * - HP를 회복하고 VFX 타이머를 활성화한다
+     * @param {number} amount - 회복량
+     * @returns {number} 실제 회복량 (최대 HP 초과분 제외)
+     */
+    heal(amount) {
+        const prevHp = this.hp;
+        this.hp = Math.min(this.hp + amount, this.maxHp);
+        const actualHeal = this.hp - prevHp;
+
+        if (actualHeal > 0) {
+            // E: 플레이어 글로우
+            this.healGlowTimer = LIFESTEAL_VFX.GLOW_DURATION;
+            // B: HP바 플래시
+            this.healFlashTimer = LIFESTEAL_VFX.HP_FLASH_DURATION;
+            // C: HP바 회복 구간 하이라이트
+            this.healHighlight = actualHeal / this.maxHp;
+            this.healHighlightTimer = LIFESTEAL_VFX.HEAL_HIGHLIGHT_DURATION;
+        }
+
+        return actualHeal;
     }
 
     /**

@@ -315,6 +315,19 @@ export const UI = {
     OVERLAY_COLOR: 'rgba(0, 0, 0, 0.7)',
 };
 
+// ===== 흡혈 VFX 설정 =====
+export const LIFESTEAL_VFX = {
+    TEXT_COLOR: '#69f0ae',          // 힐 텍스트 색상 (초록)
+    TEXT_PREFIX: '+',               // 텍스트 접두사
+    GLOW_COLOR: 'rgba(105, 240, 174, 0.5)',   // 플레이어 글로우 색상
+    GLOW_DURATION: 0.5,            // 플레이어 글로우 지속 시간 (초)
+    GLOW_RADIUS_ADD: 12,           // 글로우 추가 반경
+    HP_FLASH_COLOR: '#69f0ae',     // HP바 플래시 색상
+    HP_FLASH_DURATION: 0.25,       // HP바 플래시 지속 시간 (초)
+    HEAL_HIGHLIGHT_DURATION: 0.4,  // 회복 구간 하이라이트 지속 시간 (초)
+    HEAL_HIGHLIGHT_COLOR: '#b9f6ca', // 회복 구간 색상 (화이트 민트 — 체력바 초록과 구분)
+};
+
 // ===== 투사체 설정 =====
 export const PROJECTILE = {
     MAX_LIFETIME: 3.0,          // 투사체 최대 생존 시간 (초)
