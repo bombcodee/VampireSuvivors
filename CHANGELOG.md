@@ -107,8 +107,17 @@
   - CollisionSystem: proj.hitColor로 투사체 무기 텍스트 색상 전달
   - 진화 무기: DAMAGE_TEXT_COLOR 필드 추가 (렌더링 색과 분리)
   - KingBible/SoulEater 보라색 겹침 해소 (SoulEater → 초록)
+- VFX-005: 흡혈 시각 피드백 (SoulEater, BloodyTear)
+  - A: 힐 텍스트 (+N) 플레이어 머리 위 (초록 #69f0ae)
+  - B: HP바 테두리 초록 플래시 (0.25초)
+  - C: HP바 회복 구간 화이트민트 하이라이트 (#b9f6ca, 0.4초)
+  - E: 플레이어 글로우 (무적 깜빡임과 독립, 0.5초, shadowBlur×3)
+  - D(흡혈 파티클): Phase 3 보류 (보석 흡수 이펙트와 혼동 우려)
+  - Player.heal() 메서드 신설 — VFX 타이머 자동 세팅
+  - DamageText: 문자열 지원 추가 ("+N" 힐 텍스트용)
 - STG-002: 난이도 곡선 세분화 + 디버그 개선 + 보스 버그 수정
 - 드라큘라 디스폰 버그 수정 + 경고음/보스 BGM 추가
+- DEP-002: GitHub Pages 배포 (bombcodee.github.io/VampireSuvivors)
 
 ### Planned (예정)
 - ~~사운드: SoundManager (Web Audio API), 효과음 8종~~ ✅ SFX-001, SFX-003 완료
@@ -117,6 +126,6 @@
 - ~~VFX: ParticlePool, ScreenEffects (Hit Freeze, Screen Flash)~~ ✅ VFX-001, VFX-002 완료
 - ~~VFX: 무기별 히트 이펙트 (글로우 + 파티클)~~ ✅ VFX-003 완료
 - ~~VFX: 무기 데미지 텍스트 색상 정리~~ ✅ VFX-004 완료
-- VFX: 흡혈 시각 표시
+- ~~VFX: 흡혈 시각 표시~~ ✅ VFX-005 완료
 - ~~스테이지: 30분 타이머 + 최종 보스, 난이도 곡선 세분화~~ ✅ STG-001, STG-002 완료
 - UI: PauseUI 영구 업그레이드 보너스 표시
