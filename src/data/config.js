@@ -104,25 +104,25 @@ export const SPAWNER = {
     // 난이도 곡선: 초반 완만 → 중반 가속 → 후반 극한 → 드라큘라 직전 최고조
     WAVES: [
         // === 초반: 입문 (0~2분) ===
-        { time: 0,    types: ['BAT'],                spawnCount: 1,  interval: 1.5 },   // 0:00 입문
-        { time: 30,   types: ['BAT'],                spawnCount: 2,  interval: 1.2 },   // 0:30 적응
+        { time: 0, types: ['BAT'], spawnCount: 1, interval: 1.5 },   // 0:00 입문
+        { time: 30, types: ['BAT'], spawnCount: 2, interval: 1.2 },   // 0:30 적응
         // === 초중반: 긴장감 시작 (2~4분) ===
-        { time: 60,   types: ['BAT', 'ZOMBIE'],      spawnCount: 2,  interval: 1.0 },   // 1:00 좀비 등장
-        { time: 120,  types: ['BAT', 'ZOMBIE'],      spawnCount: 3,  interval: 0.8 },   // 2:00 압박 증가
+        { time: 60, types: ['BAT', 'ZOMBIE'], spawnCount: 2, interval: 1.0 },   // 1:00 좀비 등장
+        { time: 120, types: ['BAT', 'ZOMBIE'], spawnCount: 3, interval: 0.8 },   // 2:00 압박 증가
         // === 중반: 본격 전투 (4~8분) ===
-        { time: 180,  types: ['ZOMBIE', 'SKELETON'], spawnCount: 3,  interval: 0.7 },   // 3:00 스켈레톤 등장
-        { time: 240,  types: ['ZOMBIE', 'SKELETON'], spawnCount: 4,  interval: 0.6 },   // 4:00 첫 보스 구간
-        { time: 300,  types: ['SKELETON'],           spawnCount: 4,  interval: 0.55 },  // 5:00 강적 중심
-        { time: 360,  types: ['SKELETON', 'ZOMBIE'], spawnCount: 5,  interval: 0.5 },   // 6:00 밀도 상승
+        { time: 180, types: ['ZOMBIE', 'SKELETON'], spawnCount: 3, interval: 0.7 },   // 3:00 스켈레톤 등장
+        { time: 240, types: ['ZOMBIE', 'SKELETON'], spawnCount: 4, interval: 0.6 },   // 4:00 첫 보스 구간
+        { time: 300, types: ['SKELETON'], spawnCount: 4, interval: 0.55 },  // 5:00 강적 중심
+        { time: 360, types: ['SKELETON', 'ZOMBIE'], spawnCount: 5, interval: 0.5 },   // 6:00 밀도 상승
         // === 후반: 고밀도 (8~14분) ===
-        { time: 450,  types: ['SKELETON'],           spawnCount: 5,  interval: 0.45 },  // 7:30 후반 진입
-        { time: 540,  types: ['SKELETON'],           spawnCount: 6,  interval: 0.4 },   // 9:00 고밀도
-        { time: 630,  types: ['SKELETON'],           spawnCount: 7,  interval: 0.35 },  // 10:30 극한 시작
-        { time: 720,  types: ['SKELETON'],           spawnCount: 8,  interval: 0.3 },   // 12:00 생존 테스트
+        { time: 450, types: ['SKELETON'], spawnCount: 5, interval: 0.45 },  // 7:30 후반 진입
+        { time: 540, types: ['SKELETON'], spawnCount: 6, interval: 0.4 },   // 9:00 고밀도
+        { time: 630, types: ['SKELETON'], spawnCount: 7, interval: 0.35 },  // 10:30 극한 시작
+        { time: 720, types: ['SKELETON'], spawnCount: 8, interval: 0.3 },   // 12:00 생존 테스트
         // === 극한: 최고조 (14~20분) ===
-        { time: 840,  types: ['SKELETON'],           spawnCount: 9,  interval: 0.25 },  // 14:00 극한
-        { time: 960,  types: ['SKELETON'],           spawnCount: 10, interval: 0.22 },  // 16:00 최고조
-        { time: 1080, types: ['SKELETON'],           spawnCount: 12, interval: 0.2 },   // 18:00 드라큘라 직전
+        { time: 840, types: ['SKELETON'], spawnCount: 9, interval: 0.25 },  // 14:00 극한
+        { time: 960, types: ['SKELETON'], spawnCount: 10, interval: 0.22 },  // 16:00 최고조
+        { time: 1080, types: ['SKELETON'], spawnCount: 12, interval: 0.2 },   // 18:00 드라큘라 직전
     ],
     BOSS_SPAWN_TIME: 240,       // 보스 첫 등장 시간 (4분 = 240초)
     BOSS_RESPAWN_INTERVAL: 90,  // 보스 재등장 간격 (1.5분 = 90초)
@@ -173,11 +173,11 @@ export const WEAPONS = {
         DESCRIPTION: '바닥에 성수 웅덩이를 만들어 적에게 지속 피해를 준다',
         COLOR: 'rgba(100, 181, 246, 0.4)',  // 파란색 반투명
         LEVELS: [
-            { damage: 8,  cooldown: 3.0, radius: 50,  duration: 2.5, tickRate: 0.5 },
-            { damage: 10, cooldown: 2.8, radius: 55,  duration: 3.0, tickRate: 0.45 },
-            { damage: 12, cooldown: 2.5, radius: 60,  duration: 3.5, tickRate: 0.4 },
-            { damage: 15, cooldown: 2.2, radius: 70,  duration: 4.0, tickRate: 0.35 },
-            { damage: 20, cooldown: 2.0, radius: 80,  duration: 4.5, tickRate: 0.3 },
+            { damage: 8, cooldown: 3.0, radius: 50, duration: 2.5, tickRate: 0.5 },
+            { damage: 10, cooldown: 2.8, radius: 55, duration: 3.0, tickRate: 0.45 },
+            { damage: 12, cooldown: 2.5, radius: 60, duration: 3.5, tickRate: 0.4 },
+            { damage: 15, cooldown: 2.2, radius: 70, duration: 4.0, tickRate: 0.35 },
+            { damage: 20, cooldown: 2.0, radius: 80, duration: 4.5, tickRate: 0.3 },
         ],
         MAX_LEVEL: 5,
     },
@@ -189,10 +189,10 @@ export const WEAPONS = {
         HIT_COOLDOWN: 0.3,         // 같은 적 중복 히트 방지 시간
         COLLISION_RADIUS: 10,      // 책 충돌 반지름
         LEVELS: [
-            { damage: 8,  cooldown: 3.5, orbitRadius: 80,  count: 1, duration: 3.0, speed: 2.5 },
-            { damage: 10, cooldown: 3.2, orbitRadius: 85,  count: 2, duration: 3.0, speed: 2.7 },
-            { damage: 12, cooldown: 3.0, orbitRadius: 90,  count: 2, duration: 3.5, speed: 2.9 },
-            { damage: 15, cooldown: 2.8, orbitRadius: 95,  count: 3, duration: 3.5, speed: 3.1 },
+            { damage: 8, cooldown: 3.5, orbitRadius: 80, count: 1, duration: 3.0, speed: 2.5 },
+            { damage: 10, cooldown: 3.2, orbitRadius: 85, count: 2, duration: 3.0, speed: 2.7 },
+            { damage: 12, cooldown: 3.0, orbitRadius: 90, count: 2, duration: 3.5, speed: 2.9 },
+            { damage: 15, cooldown: 2.8, orbitRadius: 95, count: 3, duration: 3.5, speed: 3.1 },
             { damage: 20, cooldown: 2.5, orbitRadius: 100, count: 3, duration: 4.0, speed: 3.3 },
         ],
         MAX_LEVEL: 5,
@@ -204,8 +204,8 @@ export const WEAPONS = {
         COLOR: '#ff7043',          // 주황빨강
         SPREAD_ANGLE: 0.2,         // 투사체 분산 각도 (라디안)
         LEVELS: [
-            { damage: 20, cooldown: 1.5, speed: 300, count: 1, size: 8,  pierce: 2 },
-            { damage: 25, cooldown: 1.4, speed: 320, count: 1, size: 9,  pierce: 2 },
+            { damage: 20, cooldown: 1.5, speed: 300, count: 1, size: 8, pierce: 2 },
+            { damage: 25, cooldown: 1.4, speed: 320, count: 1, size: 9, pierce: 2 },
             { damage: 30, cooldown: 1.3, speed: 340, count: 1, size: 10, pierce: 3 },
             { damage: 35, cooldown: 1.1, speed: 360, count: 2, size: 10, pierce: 3 },
             { damage: 45, cooldown: 1.0, speed: 380, count: 2, size: 12, pierce: 4 },
@@ -219,9 +219,9 @@ export const WEAPONS = {
         COLOR: '#b0bec5',          // 은색
         SPREAD_ANGLE: 0.12,        // 투사체 분산 각도 (라디안)
         LEVELS: [
-            { damage: 6,  cooldown: 0.5, speed: 500, count: 1, size: 4 },
-            { damage: 7,  cooldown: 0.45, speed: 520, count: 1, size: 4 },
-            { damage: 8,  cooldown: 0.4, speed: 540, count: 2, size: 5 },
+            { damage: 6, cooldown: 0.5, speed: 500, count: 1, size: 4 },
+            { damage: 7, cooldown: 0.45, speed: 520, count: 1, size: 4 },
+            { damage: 8, cooldown: 0.4, speed: 540, count: 2, size: 5 },
             { damage: 10, cooldown: 0.35, speed: 560, count: 2, size: 5 },
             { damage: 12, cooldown: 0.3, speed: 580, count: 3, size: 5 },
         ],
@@ -317,15 +317,15 @@ export const UI = {
 
 // ===== 흡혈 VFX 설정 =====
 export const LIFESTEAL_VFX = {
-    TEXT_COLOR: '#69f0ae',          // 힐 텍스트 색상 (초록)
-    TEXT_PREFIX: '+',               // 텍스트 접두사
-    GLOW_COLOR: 'rgba(105, 240, 174, 0.5)',   // 플레이어 글로우 색상
-    GLOW_DURATION: 0.5,            // 플레이어 글로우 지속 시간 (초)
-    GLOW_RADIUS_ADD: 12,           // 글로우 추가 반경
-    HP_FLASH_COLOR: '#69f0ae',     // HP바 플래시 색상
-    HP_FLASH_DURATION: 0.25,       // HP바 플래시 지속 시간 (초)
-    HEAL_HIGHLIGHT_DURATION: 0.4,  // 회복 구간 하이라이트 지속 시간 (초)
-    HEAL_HIGHLIGHT_COLOR: '#b9f6ca', // 회복 구간 색상 (화이트 민트 — 체력바 초록과 구분)
+    TEXT_COLOR: '#69f0ae',              // 힐 텍스트 색상 (초록)
+    TEXT_PREFIX: '+',                   // 텍스트 접두사
+    GLOW_COLOR: 'rgba(105, 240, 174, 0.5)',  // 플레이어 글로우 색상
+    GLOW_DURATION: 0.5,                 // 플레이어 글로우 지속 시간 (초)
+    GLOW_RADIUS_ADD: 12,                // 글로우 추가 반경
+    HP_FLASH_COLOR: '#69f0ae',          // HP바 플래시 색상
+    HP_FLASH_DURATION: 0.25,            // HP바 플래시 지속 시간 (초)
+    HEAL_HIGHLIGHT_DURATION: 0.4,       // 회복 구간 하이라이트 지속 시간 (초)
+    HEAL_HIGHLIGHT_COLOR: '#b9f6ca',    // 회복 구간 색상 (화이트 민트 — 체력바 초록과 구분)
 };
 
 // ===== 투사체 설정 =====
@@ -523,14 +523,14 @@ export const PARTICLES = {
     LEVELUP_RING: { count: 8, speed: 200, life: 0.5, size: 4, gravity: 0, color: '#ffd54f' },
     EVOLUTION_FLASH: { count: 12, speed: 250, life: 0.6, size: 5, gravity: 0, color: '#ffd700' },
     // === 히트 파티클 (무기별 피격 이펙트) ===
-    HIT_SPARK:    { count: 6, speed: 180, life: 0.3,  size: 4,   gravity: 0,   color: '#ffd700', shape: 'star' },   // MagicWand/HolyWand: 금색 십자 스파크
-    HIT_POISON:   { count: 5, speed: 100, life: 0.4,  size: 5,   gravity: -30, color: '#66bb6a', shape: 'ring' },   // Garlic/SoulEater: 초록 독 안개 (위로)
-    HIT_SLASH:    { count: 7, speed: 200, life: 0.25, size: 3.5, gravity: 100, color: '#ff1744', shape: 'line' },   // Whip/BloodyTear: 빨간 참격선 (아래로)
-    HIT_METAL:    { count: 5, speed: 220, life: 0.25, size: 3.5, gravity: 80,  color: '#cfd8dc', shape: 'line' },   // Knife/ThousandEdge: 금속 파편선
-    HIT_BUBBLE:   { count: 5, speed: 80,  life: 0.4,  size: 5.5, gravity: -20, color: '#42a5f5', shape: 'ring' },   // HolyWater/LaBorra: 파란 물거품 (위로)
-    HIT_HOLY:     { count: 5, speed: 120, life: 0.35, size: 4,   gravity: 0,   color: '#ce93d8', shape: 'star' },   // KingBible/UnholyVespers: 보라 빛 십자
-    HIT_FIRE:     { count: 7, speed: 160, life: 0.35, size: 5,   gravity: -50, color: '#ff7043', shape: 'circle' }, // FireWand/Hellfire: 불똥 (위로)
-    HIT_ELECTRIC: { count: 4, speed: 250, life: 0.2,  size: 3.5, gravity: 0,   color: '#87ceeb', shape: 'line' },   // LightningRing/ThunderLoop: 하늘색 전기선
+    HIT_SPARK: { count: 6, speed: 180, life: 0.3, size: 4, gravity: 0, color: '#ffd700', shape: 'star' },   // MagicWand/HolyWand: 금색 십자 스파크
+    HIT_POISON: { count: 5, speed: 100, life: 0.4, size: 5, gravity: -30, color: '#66bb6a', shape: 'ring' },   // Garlic/SoulEater: 초록 독 안개 (위로)
+    HIT_SLASH: { count: 7, speed: 200, life: 0.25, size: 3.5, gravity: 100, color: '#ff1744', shape: 'line' },   // Whip/BloodyTear: 빨간 참격선 (아래로)
+    HIT_METAL: { count: 5, speed: 220, life: 0.25, size: 3.5, gravity: 80, color: '#cfd8dc', shape: 'line' },   // Knife/ThousandEdge: 금속 파편선
+    HIT_BUBBLE: { count: 5, speed: 80, life: 0.4, size: 5.5, gravity: -20, color: '#42a5f5', shape: 'ring' },   // HolyWater/LaBorra: 파란 물거품 (위로)
+    HIT_HOLY: { count: 5, speed: 120, life: 0.35, size: 4, gravity: 0, color: '#ce93d8', shape: 'star' },   // KingBible/UnholyVespers: 보라 빛 십자
+    HIT_FIRE: { count: 7, speed: 160, life: 0.35, size: 5, gravity: -50, color: '#ff7043', shape: 'circle' }, // FireWand/Hellfire: 불똥 (위로)
+    HIT_ELECTRIC: { count: 4, speed: 250, life: 0.2, size: 3.5, gravity: 0, color: '#87ceeb', shape: 'line' },   // LightningRing/ThunderLoop: 하늘색 전기선
 };
 
 // ===== 화면 효과 설정 =====
