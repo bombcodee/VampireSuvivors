@@ -157,3 +157,14 @@
 - [BUG-007] 디버그 L키 레벨 미반영: 레벨업 UI는 뜨나 HUD 레벨 숫자 미변경
   - 원인: `game.onLevelUp()` 만 호출, `player.level++` 없음
   - 수정: DebugMode.js L키 핸들러에 `player.level++` + `expToNext` 갱신 추가
+
+### QoL 개선 (2026-03-21)
+- BGM 자동 시작 개선
+  - `SoundManager.resume()` → Promise 반환, `_setupAudioResume()` async/await 적용
+  - `playBGM('menu')`를 constructor에서 즉시 예약 → AudioContext resume 시 자동 시작
+  - resume 트리거: `click` + `keydown` + `mousemove` — 마우스 이동만으로도 BGM 시작
+- 캐릭터 선택 포커싱 효과음: 좌우 이동/숫자키로 캐릭터 바꿀 때 `ui_click` 재생
+- 음소거 버튼 추가 (우측 하단, 모든 화면에서 항상 표시)
+  - 🔊 스피커 + 음파 아이콘 (켜짐) / 🔇 스피커 + X 아이콘 (음소거), 클릭으로 토글
+  - `_muteBtn` + `_setupMuteButton()` + `_renderMuteButton()` — Game.js에 추가
+- POL-008 개발 예정 등록: 설정/옵션 창 (BGM/SFX 슬라이더 등, Phase 3 예정)

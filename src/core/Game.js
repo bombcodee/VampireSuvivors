@@ -119,8 +119,102 @@ export class Game {
         // 게임 루프를 미리 바인딩 (매 프레임 새 함수 생성 방지)
         this._gameLoop = this._gameLoop.bind(this);
 
-        // AudioContext resume (브라우저 정책: 첫 유저 입력 필요)
+        // 메뉴 BGM 즉시 예약 (AudioContext가 suspended면 큐에 쌓임)
+        this.sound.playBGM('menu');
+
+        // AudioContext resume (브라우저 정책: 첫 인터랙션 시 자동 resume)
         this._setupAudioResume();
+
+        // 음소거 버튼 (우측 하단, 항상 표시)
+        this._muteBtn = { cx: CANVAS_WIDTH - 22, cy: CANVAS_HEIGHT - 22, r: 14 };
+        this._setupMuteButton();
+    }
+
+    /**
+     * 음소거 버튼 클릭 감지 리스너 등록
+     * 버튼 영역 안을 클릭하면 toggleMute() 호출
+     */
+    _setupMuteButton() {
+        this.canvas.addEventListener('click', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            // 캔버스 CSS 크기와 실제 픽셀 크기 차이 보정
+            const scaleX = this.canvas.width / rect.width;
+            const scaleY = this.canvas.height / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            const { cx, cy, r } = this._muteBtn;
+            const dist = Math.hypot(mx - cx, my - cy);
+            if (dist <= r) {
+                this.sound.toggleMute();
+            }
+        });
+    }
+
+    /**
+     * 음소거 버튼을 우측 하단에 렌더링한다
+     * - 🔊 모양 (스피커 + 음파): 소리 켜짐
+     * - 🔇 모양 (스피커 + X): 음소거
+     */
+    _renderMuteButton() {
+        const { cx, cy, r } = this._muteBtn;
+        const ctx = this.ctx;
+        const isMuted = this.sound._muted;
+
+        ctx.save();
+
+        // 배경 원
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 아이콘 색상 (음소거 시 연한 빨간색)
+        const col = isMuted ? '#ff8a80' : 'rgba(255, 255, 255, 0.55)';
+        ctx.fillStyle = col;
+        ctx.strokeStyle = col;
+
+        // 스피커 본체 (왼쪽 사각형 + 오른쪽 확성기 뿔)
+        const s = r * 0.55;  // 아이콘 스케일
+        ctx.beginPath();
+        ctx.moveTo(cx - s,        cy - s * 0.45);  // 사각형 좌상
+        ctx.lineTo(cx - s * 0.3,  cy - s * 0.45);  // 사각형 우상
+        ctx.lineTo(cx + s * 0.25, cy - s * 0.95);  // 뿔 위 끝
+        ctx.lineTo(cx + s * 0.25, cy + s * 0.95);  // 뿔 아래 끝
+        ctx.lineTo(cx - s * 0.3,  cy + s * 0.45);  // 사각형 우하
+        ctx.lineTo(cx - s,        cy + s * 0.45);  // 사각형 좌하
+        ctx.closePath();
+        ctx.fill();
+
+        if (isMuted) {
+            // X 표시
+            const ox = cx + s * 0.55;
+            const d  = s * 0.38;
+            ctx.lineWidth = r * 0.17;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(ox - d, cy - d);
+            ctx.lineTo(ox + d, cy + d);
+            ctx.moveTo(ox + d, cy - d);
+            ctx.lineTo(ox - d, cy + d);
+            ctx.stroke();
+        } else {
+            // 음파 (호 2개)
+            const waveOriginX = cx + s * 0.1;
+            ctx.lineWidth = r * 0.13;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(waveOriginX, cy, s * 0.48, -Math.PI / 4, Math.PI / 4);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(waveOriginX, cy, s * 0.8, -Math.PI / 3.5, Math.PI / 3.5);
+            ctx.stroke();
+        }
+
+        ctx.restore();
     }
 
     /**
@@ -128,15 +222,17 @@ export class Game {
      * 브라우저 정책: 유저가 클릭/키 입력 전에는 소리 재생 불가
      */
     _setupAudioResume() {
-        const resume = () => {
-            this.sound.resume();
-            // 첫 유저 입력 → 메뉴 BGM 시작
-            this.sound.playBGM('menu');
+        // 첫 인터랙션(클릭/키/마우스 이동 중 하나) 시 AudioContext resume
+        // → 이미 예약된 메뉴 BGM이 자동 시작
+        const resume = async () => {
+            await this.sound.resume();
             this.canvas.removeEventListener('click', resume);
             document.removeEventListener('keydown', resume);
+            document.removeEventListener('mousemove', resume);
         };
         this.canvas.addEventListener('click', resume);
         document.addEventListener('keydown', resume);
+        document.addEventListener('mousemove', resume);
     }
 
     /**
@@ -280,6 +376,9 @@ export class Game {
                 });
                 break;
         }
+
+        // 음소거 버튼은 모든 상태에서 항상 렌더 (맨 마지막 → 항상 최상단 표시)
+        this._renderMuteButton();
     }
 
     // ===== 상태별 업데이트 메서드 =====
@@ -319,7 +418,14 @@ export class Game {
     }
 
     _updateCharSelect() {
+        const prevIndex = this.charSelectUI.selectedIndex;
         const characterId = this.charSelectUI.update(this.input);
+
+        // 선택 포커스가 바뀌면 클릭 소리 재생
+        if (this.charSelectUI.selectedIndex !== prevIndex) {
+            this.sound.play('ui_click');
+        }
+
         if (characterId) {
             this._startGame(characterId);
         }

@@ -68,8 +68,9 @@ export class SoundManager {
      */
     resume() {
         if (this._ctx.state === 'suspended') {
-            this._ctx.resume();
+            return this._ctx.resume();
         }
+        return Promise.resolve();
     }
 
     /**
