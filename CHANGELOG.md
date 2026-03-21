@@ -121,7 +121,7 @@
 
 ### Planned (예정)
 - ~~사운드: SoundManager (Web Audio API), 효과음 8종~~ ✅ SFX-001, SFX-003 완료
-- BGM 1곡 (로열티 프리)
+- ~~BGM 1곡 (로열티 프리)~~ ✅ SFX-002 완료 (7곡 전면 구현)
 - 효과음 퀄리티 개선 (SFX-004)
 - ~~VFX: ParticlePool, ScreenEffects (Hit Freeze, Screen Flash)~~ ✅ VFX-001, VFX-002 완료
 - ~~VFX: 무기별 히트 이펙트 (글로우 + 파티클)~~ ✅ VFX-003 완료
@@ -129,3 +129,31 @@
 - ~~VFX: 흡혈 시각 표시~~ ✅ VFX-005 완료
 - ~~스테이지: 30분 타이머 + 최종 보스, 난이도 곡선 세분화~~ ✅ STG-001, STG-002 완료
 - UI: PauseUI 영구 업그레이드 보너스 표시
+
+### SFX-002: BGM 전면 구현 (2026-03-19)
+- BGM 파일 7종 OpenGameArt.org(CC0/CC-BY)에서 다운로드 → `assets/audio/`
+  - `bgm_menu.ogg` — 메인 메뉴 루프
+  - `bgm_game.ogg` — 게임 플레이 루프
+  - `bgm_boss.ogg` — 드라큘라 전투 루프
+  - `bgm_gameover_stinger.ogg` — 게임오버 스팅거 (1회)
+  - `bgm_gameover_loop.ogg` — 게임오버 이후 루프
+  - `bgm_victory_stinger.ogg` — 승리 스팅거 (1회)
+  - `bgm_victory_loop.ogg` — 승리 이후 루프
+- SoundManager.js: 오실레이터 기반 보스 BGM 완전 제거 → 범용 BGM 시스템으로 교체
+  - `playBGM(name, loop)`: 트랙 전환 (현재 트랙 즉시 정지 + 새 트랙 시작)
+  - `stopBGM(fade, fadeDuration)`: fade-out 정지 (28초 슬로우 페이드 지원)
+  - `_loadBGM(name, url)`: 비동기 버퍼 로드 + pending 자동 재생
+  - 스팅거 → 루프 자동 전환: `source.onended` 기반
+- Game.js: 최초 유저 입력 → `playBGM('menu')`, 게임 시작 → `playBGM('game')`
+  - 승리 → `playBGM('victory_stinger', false)` → 자동으로 `victory_loop`
+  - 게임오버 → `playBGM('gameover_stinger', false)` → 자동으로 `gameover_loop`
+  - 메뉴 복귀 → `playBGM('menu')`
+- EnemySpawner.js: 29:30 경고 → `stopBGM(true, 28)`, 드라큘라 스폰 → `playBGM('boss')`
+
+### Bug Fix (2026-03-19)
+- [BUG-006] BGM 동시 재생 버그: `stopBGM(fade, 28)` 후 빠른 전환 시 구 BGM + 신 BGM 겹침
+  - 원인: `_bgmCurrentSource = null` 직후 `srcToStop`이 audio graph에 남아 있음
+  - 수정: `_bgmFadingSource` 추적 변수 추가 → `playBGM()` 호출 시 즉시 정지
+- [BUG-007] 디버그 L키 레벨 미반영: 레벨업 UI는 뜨나 HUD 레벨 숫자 미변경
+  - 원인: `game.onLevelUp()` 만 호출, `player.level++` 없음
+  - 수정: DebugMode.js L키 핸들러에 `player.level++` + `expToNext` 갱신 추가

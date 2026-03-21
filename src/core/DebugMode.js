@@ -74,8 +74,11 @@ export class DebugMode {
             }
         }
 
-        // L: 즉시 레벨업
+        // L: 즉시 레벨업 (player.level 실제 증가 + expToNext 갱신)
         if (input.isKeyPressed('KeyL')) {
+            game.player.level++;
+            game.player.exp = 0;
+            game.player.expToNext = game.expSystem.getExpToNext(game.player.level);
             game.onLevelUp();
         }
 

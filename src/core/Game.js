@@ -130,6 +130,8 @@ export class Game {
     _setupAudioResume() {
         const resume = () => {
             this.sound.resume();
+            // 첫 유저 입력 → 메뉴 BGM 시작
+            this.sound.playBGM('menu');
             this.canvas.removeEventListener('click', resume);
             document.removeEventListener('keydown', resume);
         };
@@ -455,6 +457,7 @@ export class Game {
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
             this.sound.play('ui_click');
             this._saveGold();
+            this.sound.playBGM('menu');   // 메뉴 복귀 시 메뉴 BGM
             this.state = STATE.MENU;
         }
     }
@@ -465,6 +468,7 @@ export class Game {
         if (this.input.isKeyPressed('Enter') || this.input.isKeyPressed('Space')) {
             this.sound.play('ui_click');
             this._saveGold();
+            this.sound.playBGM('menu');   // 메뉴 복귀 시 메뉴 BGM
             this.state = STATE.MENU;
         }
     }
@@ -604,7 +608,8 @@ export class Game {
         this.enemySpawner.reset();
         this.gameTime = 0;
 
-        // 게임 시작!
+        // 게임 시작! 게임 BGM으로 전환
+        this.sound.playBGM('game');
         this.state = STATE.PLAY;
     }
 
@@ -648,10 +653,11 @@ export class Game {
      * - 화면 효과 + 승리 처리
      */
     onDraculaKilled() {
-        this.sound.stopBossBGM();       // 보스 BGM 정지
         this.sound.play('evolve');
         this.particles.emit(this.player.x, this.player.y, 'EVOLUTION_FLASH');
         this.screenFx.flash('#ffffff', 0.3);
+        // 승리 스팅거 재생 → 자동으로 victory_loop 전환
+        this.sound.playBGM('victory_stinger', false);
         this.state = STATE.VICTORY;
     }
 
@@ -659,7 +665,8 @@ export class Game {
      * 플레이어 사망 시 호출된다 (CollisionSystem에서 호출)
      */
     onPlayerDeath() {
-        this.sound.stopBossBGM();       // 보스 BGM 정지 (드라큘라전 중 사망 대비)
+        // 게임오버 스팅거 재생 → 자동으로 gameover_loop 전환
+        this.sound.playBGM('gameover_stinger', false);
         this.state = STATE.GAMEOVER;
     }
 }

@@ -28,10 +28,34 @@ export class SoundManager {
         // ===== 디바운스 =====
         this._lastPlayTime = {};  // { soundId: timestamp }
 
-        // ===== 보스 BGM 노드 참조 (정지용) =====
-        this._bossBgmNodes = [];    // 현재 재생 중인 보스 BGM 오실레이터/게인 목록
-        this._bossBgmPlaying = false;
-        this._bossBgmTimer = null;  // 루프 패턴 반복용 타이머 ID
+        // ===== BGM 시스템 (파일 기반, 범용) =====
+        // 모든 BGM 트랙은 단일 gainNode(_bgmSourceGain)를 공유한다
+        // source → _bgmSourceGain → _bgmGain → _masterGain → destination
+        this._bgmSourceGain = this._ctx.createGain();
+        this._bgmSourceGain.gain.value = 1.0;
+        this._bgmSourceGain.connect(this._bgmGain);
+
+        this._bgmBuffers = {};          // { name: AudioBuffer } — 로드된 트랙 버퍼
+        this._bgmCurrentSource = null;  // 현재 재생 중인 AudioBufferSourceNode
+        this._bgmCurrentName = null;    // 현재 재생 중인 트랙 이름
+        this._bgmPending = null;        // { name, loop } — 로드 전 재생 요청 대기
+        this._bgmFadingSource = null;   // stopBGM(fade) 후 setTimeout 대기 중인 소스
+
+        // 스팅거 → 루프 자동 전환 테이블
+        // 스팅거(1회 재생)가 끝나면 자동으로 다음 트랙을 루프 재생한다
+        this._bgmNextTrack = {
+            'gameover_stinger': { name: 'gameover_loop', loop: true },
+            'victory_stinger':  { name: 'victory_loop',  loop: true },
+        };
+
+        // 7개 BGM 파일 미리 로드 (비동기)
+        this._loadBGM('menu',             'assets/audio/bgm_menu.ogg');
+        this._loadBGM('game',             'assets/audio/bgm_game.ogg');
+        this._loadBGM('boss',             'assets/audio/bgm_boss.ogg');
+        this._loadBGM('gameover_stinger', 'assets/audio/bgm_gameover_stinger.ogg');
+        this._loadBGM('gameover_loop',    'assets/audio/bgm_gameover_loop.ogg');
+        this._loadBGM('victory_stinger',  'assets/audio/bgm_victory_stinger.ogg');
+        this._loadBGM('victory_loop',     'assets/audio/bgm_victory_loop.ogg');
 
         // ===== 음소거 =====
         this._muted = false;
@@ -110,120 +134,139 @@ export class SoundManager {
     }
 
     // ========================================
-    // 보스 BGM (루프)
+    // BGM 시스템 (파일 기반, 범용)
     // ========================================
 
     /**
-     * 보스 BGM을 시작한다 (드라큘라 스폰 시)
-     * - 어둡고 긴박한 루프: 저음 드론 + 맥동 베이스 + 불협화음 패드
-     * - stopBossBGM()으로 정지
+     * BGM 파일을 비동기로 로드하여 AudioBuffer에 디코딩한다
+     * - fetch → ArrayBuffer → decodeAudioData 순서
+     * - 로드 완료 전에 이 트랙 play 요청이 대기 중이었으면 완료 후 자동 재생
+     * @param {string} name - 트랙 이름 ('menu', 'game', 'boss' 등)
+     * @param {string} url  - ogg/mp3 파일 경로
      */
-    startBossBGM() {
-        if (this._bossBgmPlaying || this._muted) return;
-        this._bossBgmPlaying = true;
+    async _loadBGM(name, url) {
+        try {
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            this._bgmBuffers[name] = await this._ctx.decodeAudioData(arrayBuffer);
 
-        // --- 레이어 1: 불길한 저음 드론 (sawtooth, 지속) ---
-        const drone = this._ctx.createOscillator();
-        const droneGain = this._ctx.createGain();
-        drone.type = 'sawtooth';
-        drone.frequency.value = 45;             // 매우 낮은 음
-        droneGain.gain.value = 0.18;
-        drone.connect(droneGain).connect(this._bgmGain);
-        drone.start();
-        this._bossBgmNodes.push(drone, droneGain);
-
-        // --- 레이어 2: 맥동하는 서브베이스 (LFO로 볼륨 변조) ---
-        const sub = this._ctx.createOscillator();
-        const subGain = this._ctx.createGain();
-        sub.type = 'sine';
-        sub.frequency.value = 30;               // 깊은 서브베이스
-        subGain.gain.value = 0.25;
-        sub.connect(subGain).connect(this._bgmGain);
-        sub.start();
-        this._bossBgmNodes.push(sub, subGain);
-
-        // LFO: 서브베이스 볼륨을 맥동시킨다 (심장박동 느낌)
-        const lfo = this._ctx.createOscillator();
-        lfo.type = 'sine';
-        lfo.frequency.value = 1.5;              // 1.5Hz = 분당 90회 맥동
-        const lfoGain = this._ctx.createGain();
-        lfoGain.gain.value = 0.15;              // 맥동 깊이
-        lfo.connect(lfoGain).connect(subGain.gain);
-        lfo.start();
-        this._bossBgmNodes.push(lfo, lfoGain);
-
-        // --- 레이어 3: 불협화음 패드 (트라이톤, 지속) ---
-        const pad1 = this._ctx.createOscillator();
-        const padGain1 = this._ctx.createGain();
-        pad1.type = 'triangle';
-        pad1.frequency.value = 131;             // C3
-        padGain1.gain.value = 0.08;
-        pad1.connect(padGain1).connect(this._bgmGain);
-        pad1.start();
-        this._bossBgmNodes.push(pad1, padGain1);
-
-        const pad2 = this._ctx.createOscillator();
-        const padGain2 = this._ctx.createGain();
-        pad2.type = 'triangle';
-        pad2.frequency.value = 185;             // F#3 (트라이톤 = 악마의 음정)
-        padGain2.gain.value = 0.08;
-        pad2.connect(padGain2).connect(this._bgmGain);
-        pad2.start();
-        this._bossBgmNodes.push(pad2, padGain2);
-
-        // --- 레이어 4: 긴박한 리듬 펄스 (4비트 느낌) ---
-        this._startBossRhythm();
-    }
-
-    /**
-     * 보스 BGM 리듬 패턴을 반복 재생한다 (스케줄링 방식)
-     * - 0.4초 간격으로 짧은 킥/스내어 느낌의 펄스
-     */
-    _startBossRhythm() {
-        const interval = 0.4;  // 150 BPM 느낌
-        const playPulse = () => {
-            if (!this._bossBgmPlaying) return;
-            const now = this._ctx.currentTime;
-
-            // 킥 (짧은 저음 펄스)
-            const kick = this._ctx.createOscillator();
-            const kickGain = this._ctx.createGain();
-            kick.type = 'sine';
-            kick.frequency.setValueAtTime(80, now);
-            kick.frequency.exponentialRampToValueAtTime(30, now + 0.1);
-            kickGain.gain.setValueAtTime(0.2, now);
-            kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-            kick.connect(kickGain).connect(this._bgmGain);
-            kick.start(now);
-            kick.stop(now + 0.15);
-
-            this._bossBgmTimer = setTimeout(playPulse, interval * 1000);
-        };
-        playPulse();
-    }
-
-    /**
-     * 보스 BGM을 정지한다 (드라큘라 처치 시)
-     */
-    stopBossBGM() {
-        this._bossBgmPlaying = false;
-
-        // 타이머 정지
-        if (this._bossBgmTimer) {
-            clearTimeout(this._bossBgmTimer);
-            this._bossBgmTimer = null;
-        }
-
-        // 모든 오실레이터/게인 노드 정지 + 연결 해제
-        for (const node of this._bossBgmNodes) {
-            try {
-                if (node.stop) node.stop();
-                node.disconnect();
-            } catch (_) {
-                // 이미 정지된 노드는 무시
+            // 이 트랙을 기다리고 있었으면 지금 재생
+            if (this._bgmPending?.name === name) {
+                const { loop } = this._bgmPending;
+                this._bgmPending = null;
+                this._playBGMTrack(name, loop);
             }
+        } catch (e) {
+            console.warn(`[SoundManager] BGM 로드 실패 (${name}):`, e);
         }
-        this._bossBgmNodes = [];
+    }
+
+    /**
+     * BGM을 재생한다
+     * - 현재 재생 중인 트랙은 즉시 정지 후 새 트랙 시작
+     * - 버퍼가 아직 로드 중이면 완료 후 자동 재생 (pending 등록)
+     * @param {string}  name       - 트랙 이름 ('menu', 'game', 'boss', 'gameover_stinger' 등)
+     * @param {boolean} [loop=true] - 루프 여부 (스팅거는 false)
+     */
+    playBGM(name, loop = true) {
+        if (this._muted) return;
+
+        // fade-out 대기 중인 소스가 있으면 즉시 정지 (동시 재생 방지)
+        if (this._bgmFadingSource) {
+            this._bgmFadingSource.onended = null;
+            try { this._bgmFadingSource.stop(); } catch (_) {}
+            this._bgmFadingSource = null;
+        }
+
+        // 현재 재생 중인 트랙 즉시 정지 + onended 핸들러 취소
+        if (this._bgmCurrentSource) {
+            this._bgmCurrentSource.onended = null;
+            try { this._bgmCurrentSource.stop(); } catch (_) {}
+            this._bgmCurrentSource = null;
+        }
+
+        // gain 초기화 — 이전 stopBGM fade 자동화가 남아있을 수 있음
+        const now = this._ctx.currentTime;
+        this._bgmSourceGain.gain.cancelScheduledValues(now);
+        this._bgmSourceGain.gain.setValueAtTime(1.0, now);
+
+        // 버퍼가 로드되었으면 즉시 재생, 아직 로드 중이면 대기 등록
+        if (this._bgmBuffers[name]) {
+            this._playBGMTrack(name, loop);
+        } else {
+            this._bgmPending = { name, loop };
+        }
+    }
+
+    /**
+     * BGM 트랙을 실제로 재생한다 (내부 헬퍼)
+     * - AudioBufferSourceNode 생성 → _bgmSourceGain에 연결 → start
+     * - loop=false 트랙(스팅거)은 종료 시 자동으로 다음 트랙 시작
+     * @param {string}  name - 트랙 이름
+     * @param {boolean} loop - 루프 여부
+     */
+    _playBGMTrack(name, loop) {
+        if (!this._bgmBuffers[name]) return;
+
+        const source = this._ctx.createBufferSource();
+        source.buffer = this._bgmBuffers[name];
+        source.loop = loop;
+        source.connect(this._bgmSourceGain);
+        source.start(0);
+
+        // 스팅거(1회 재생) → 끝나면 자동으로 루프 트랙 전환
+        if (!loop && this._bgmNextTrack[name]) {
+            const next = this._bgmNextTrack[name];
+            source.onended = () => {
+                // 이 source가 아직 현재 source인지 확인 (중간에 다른 BGM으로 교체 시 무시)
+                if (this._bgmCurrentSource !== source) return;
+                this._bgmCurrentSource = null;
+                this._bgmCurrentName = null;
+                this._playBGMTrack(next.name, next.loop);
+                this._bgmCurrentName = next.name;
+            };
+        }
+
+        this._bgmCurrentSource = source;
+        this._bgmCurrentName = name;
+    }
+
+    /**
+     * 현재 BGM을 정지한다
+     * - 게임오버 / 승리 / 메뉴 복귀 시 호출
+     * @param {boolean} [fade=true]        - 페이드 아웃 여부
+     * @param {number}  [fadeDuration=0.8] - 페이드 시간(초). 19:30 경고 시 28초 전달
+     */
+    stopBGM(fade = true, fadeDuration = 0.8) {
+        this._bgmPending = null;
+        if (!this._bgmCurrentSource) return;
+
+        if (fade) {
+            const now = this._ctx.currentTime;
+            this._bgmSourceGain.gain.cancelScheduledValues(now);
+            this._bgmSourceGain.gain.setValueAtTime(this._bgmSourceGain.gain.value, now);
+            this._bgmSourceGain.gain.linearRampToValueAtTime(0, now + fadeDuration);
+
+            const srcToStop = this._bgmCurrentSource;
+            srcToStop.onended = null;               // 스팅거 자동 전환 취소
+            this._bgmCurrentSource = null;          // 즉시 null → 중복 stop 방지
+            this._bgmCurrentName = null;
+            this._bgmFadingSource = srcToStop;      // 페이드 중인 소스 추적
+
+            setTimeout(() => {
+                try { srcToStop.stop(); } catch (_) {}
+                this._bgmFadingSource = null;       // 페이드 완료 → 참조 해제
+                // gain 원복 (다음 playBGM 호출 대비)
+                this._bgmSourceGain.gain.setValueAtTime(1.0, this._ctx.currentTime);
+            }, (fadeDuration + 0.15) * 1000);
+        } else {
+            this._bgmCurrentSource.onended = null;
+            try { this._bgmCurrentSource.stop(); } catch (_) {}
+            this._bgmCurrentSource = null;
+            this._bgmCurrentName = null;
+            this._bgmSourceGain.gain.cancelScheduledValues(this._ctx.currentTime);
+            this._bgmSourceGain.gain.setValueAtTime(1.0, this._ctx.currentTime);
+        }
     }
 
     // ========================================

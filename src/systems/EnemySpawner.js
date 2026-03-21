@@ -27,11 +27,15 @@ export class EnemySpawner {
      * @param {number} gameTime - 현재 게임 경과 시간 (초)
      */
     update(dt, player, enemyPool, gameTime, game) {
-        // 드라큘라 경고 체크 (29분 30초)
+        // 드라큘라 경고 체크 (19분 30초)
         if (!this._draculaWarned && gameTime >= SPAWNER.DRACULA_WARNING_TIME) {
             this._draculaWarned = true;
             this._draculaWarnTimer = 0;  // 첫 경고음 즉시 재생
-            if (game) game.sound.play('draculawarn');
+            if (game) {
+                game.sound.play('draculawarn');
+                // 게임 BGM을 28초에 걸쳐 서서히 fade out (20분 보스 스폰 전까지 자연스럽게 사라짐)
+                game.sound.stopBGM(true, 28);
+            }
         }
 
         // 드라큘라 경고 중 (스폰 전까지만): 5초 간격으로 불길한 저음 반복
@@ -220,7 +224,7 @@ export class EnemySpawner {
 
         if (game) {
             game.sound.play('draculawarn');
-            game.sound.startBossBGM();    // 보스 BGM 루프 시작
+            game.sound.playBGM('boss');       // 보스 BGM으로 전환 (게임 BGM은 이미 fade 중)
             game.screenFx.flash('#4a0080', 0.3);
         }
     }
